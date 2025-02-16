@@ -1,9 +1,10 @@
-
+# Libraries
 library(dplyr)
 library(tidyr)
 library(readxl)
 
-file_path_combined <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/original data/Organisation of plate data/combined results page.xlsx"
+# Upload file path for the combined miseq results page
+file_path_combined <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/combined results page.xlsx"
 sheet_names <- excel_sheets(file_path_combined)
 
 # Read all sheets into a list
