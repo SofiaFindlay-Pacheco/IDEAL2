@@ -33,6 +33,8 @@ combined_data <- full_join(data_ae, data_tb, by = "Sample ID", suffix = c("_AE",
 # View the combined data
 head(combined_data)
 
+colnames(combined_data)
+
 combined_data <- combined_data %>% select (1:11, 24, 38: 48, 52)
 
 
