@@ -5,6 +5,7 @@ library(lubridate)
 library(janitor)
 library(tidyr)
 
+# Calculating the Average serology values per week
 # Handle missing values
 Brief_serology_clean <- Brief_serology_clean %>% filter(!is.na(sample_week))
 

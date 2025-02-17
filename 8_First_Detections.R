@@ -39,10 +39,12 @@ ggplot(first_detection, aes(x = sample_week, y = calf_id, color = Bacteria)) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
 
-## Now first detections for smaller amount of calfIDs
+## Now first detection for smaller amount of calfIDs
 
+#Select which CaldIDs i want to include
 Reduced_vertical_Brief_Serology <- vertical_Brief_Serology[1:120, ]
 
+#Set threshold from which to base the seroconversion
 Reduced_first_detection <- Reduced_vertical_Brief_Serology %>%
   group_by(calf_id, Bacteria) %>%
   filter(case_when(
@@ -53,7 +55,7 @@ Reduced_first_detection <- Reduced_vertical_Brief_Serology %>%
   )) %>% # Assuming values > 0 indicate detection
   slice_min(order_by = sample_week, n = 1)  # Keep the first detection
 
-# Create scatter plot for first detection of bacteria
+# Create scatter plot 
 ggplot(Reduced_first_detection, aes(x = sample_week, y = calf_id, color = Bacteria, group = Bacteria)) +
   geom_point(size = 4) +                      # Scatter points for first detection
   scale_color_manual(values = c("red", "blue", "green", "yellow")) +  # Custom colors for each bacterium
@@ -67,135 +69,43 @@ ggplot(Reduced_first_detection, aes(x = sample_week, y = calf_id, color = Bacter
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
 
 
+# Calculate the proportion of calves that seoconverted for each bacterium each week
 
-
-
-
-
-
-
-
-
-
-
-
-
-# Calculate proportion
-# Count total animals and positive animals at each visit for each bacterium
-visit_summary <- vertical_Brief_Serology %>%
-  filter(!is.na(Average_Value)) %>%  # Ensure no missing values
+# Summarize the data to get the number of calves that first seroconverted each week for each bacterium
+seroconversion_summary <- first_detection %>%
   group_by(sample_week, Bacteria) %>%
-  summarize(
-    Total_Animals = n_distinct(calf_id),  # Total animals sampled
-    Positive_Animals = sum(case_when(
-      Bacteria == "serology_t_parva" ~ Average_Value >= 20,
-      Bacteria == "serology_t_mutans" ~ Average_Value >= 20,
-      Bacteria == "serology_b_bigemina" ~ Average_Value >= 15,
-      Bacteria == "serology_a_marginale" ~ Average_Value >= 15,
-      TRUE ~ 0
-    ), na.rm = TRUE)  # Count positives based on thresholds
-  ) %>%
-  mutate(Proportion_Positive = Positive_Animals / Total_Animals)
+  summarise(
+    calves_seroconverted = n_distinct(calf_id),  # Number of unique calves that seroconverted
+    .groups = 'drop'
+  )
 
-# Create a line plot showing proportion of positives over time
-ggplot(visit_summary, aes(x = sample_week, y = Proportion_Positive, color = Bacteria, group = Bacteria)) +
-  geom_line(size = 1.2) +                   # Line plot for proportions
-  geom_point(size = 3) +                    # Points at each SampleWeek
-  scale_color_manual(values = c("red", "blue", "green", "yellow")) +  # Custom colors for each bacterium
-  labs(
-    title = "Proportion of Animals Positive Over Time",
-    x = "Sample Week",
-    y = "Proportion Positive",
-    color = "Bacteria"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
-
-
-
-# Introduce sliding window
-
-# Install and load the required package
-#install.packages("zoo")  # For rolling functions
-library(zoo)
-
-# Calculate the proportion of positive animals for each bacterium at each visit
-visit_summary <- vertical_Brief_Serology %>%
-  filter(!is.na(Average_Value)) %>%  # Ensure no missing values
-  group_by(sample_week, Bacteria) %>%
-  summarize(
-    Total_Animals = n_distinct(calf_id),  # Total animals sampled
-    Positive_Animals = sum(case_when(
-      Bacteria == "serology_t_parva" ~ Average_Value >= 20,
-      Bacteria == "serology_t_mutans" ~ Average_Value >= 20,
-      Bacteria == "serology_b_bigemina" ~ Average_Value >= 15,
-      Bacteria == "serology_a_marginale" ~ Average_Value >= 15, 
-      TRUE ~ 0
-    ), na.rm = TRUE),  # Count positives based on thresholds
-    .groups = "drop"
-  ) %>%
-  mutate(Proportion_Positive = Positive_Animals / Total_Animals)
-
-# Inspect the summary data
-head(visit_summary)
-
-# Create a line plot showing proportion of positives over time
-ggplot(visit_summary, aes(x = sample_week, y = Proportion_Positive, color = Bacteria, group =  Bacteria)) +
-  geom_line(size = 1.2) +                   # Line plot for proportions
-  geom_point(size = 3) +                    # Points at each SampleWeek
-  scale_color_manual(values = c("red", "blue", "green", "yellow")) +  # Custom colors for each bacterium
-  labs(
-    title = "Proportion of Animals Positive Over Time",
-    x = "Sample Week",
-    y = "Proportion Positive",
-    color = "Bacteria"
-  ) +
-  theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
-
-# Calculate rolling averages for sliding window
-visit_summary <- visit_summary %>%
+# Summarize total calves available for each bacterium
+total_calves <- first_detection %>%
   group_by(Bacteria) %>%
-  arrange(sample_week) %>%
-  mutate(Sliding_Avg = zoo::rollmean(Proportion_Positive, k = 3, fill = NA, align = "center"))
+  summarise(total_calves = n_distinct(calf_id), .groups = 'drop')
 
-# Inspect the summary data
-head(visit_summary)
+# Merge the total calves data with the seroconversion summary to calculate proportion
+seroconversion_proportion <- seroconversion_summary %>%
+  left_join(total_calves, by = "Bacteria") %>%
+  mutate(proportion = calves_seroconverted / total_calves)  # Proportion of calves that seroconverted
 
-# Calculate rolling averages for sliding window
-visit_summary <- visit_summary %>%
-  group_by(Bacteria) %>%
-  arrange(sample_week) %>%
-  mutate(Sliding_Avg = zoo::rollmean(Proportion_Positive, k = 3, fill = NA, align = "center"))
+# Filter out samples before week 3
+seroconversion_proportion <- seroconversion_proportion %>%
+  filter(sample_week >= 01)
 
-# Create a line plot showing proportion of positives over time with sliding window overlay
-ggplot(visit_summary, aes(x = sample_week, y = Proportion_Positive, color = Bacteria, group = Bacteria )) +
-  geom_line(size = 1.2) +                   # Line plot for proportions (raw data)
-  geom_line(aes(y = Sliding_Avg), size = 1.2, linetype = "dashed") +  # Add rolling average line
-  labs(
-    title = "Proportion of Animals Positive Over Time",
-    x = "Sample Week",
-    y = "Proportion Positive",
-    color = "Bacteria"
-  ) +
-  theme_minimal()
-
-
-# Inspect the summary data
-head(visit_summary)
-
-# Create a line plot showing proportion of positives over time with sliding window overlay
-ggplot(visit_summary, aes(x = sample_week, y = Proportion_Positive, color = Bacteria, group = Bacteria)) +
-  geom_line(size = 1.2) +                   # Line plot for proportions (raw data)          #remove this for only sliding window
-  geom_point(size = 3) +                    # Points at each SampleWeek                     #remove this for only sliding window
-  geom_line(aes(y = Sliding_Avg), size = 1.2, linetype = "dashed") +  # Sliding window line
+# Create a plot showing the proportion of calves seroconverting each week
+ggplot(seroconversion_proportion, aes(x = sample_week, y = proportion, color = Bacteria, group = Bacteria)) +
+  geom_line(size = 1.2) +                      # Line plot for proportion of seroconversion
+  geom_point(size = 3) +                       # Points for seroconversion data
   scale_color_manual(values = c("red", "blue", "green", "yellow")) +  # Custom colors for each bacterium
   labs(
-    title = "Proportion of Animals Positive Over Time with Sliding Window",
-    x = "Sample Week",
-    y = "Proportion Positive",
+    title = "Proportion of Calves Seroconverting by Week and Bacteria",
+    x = "Serology Visit Date (Week)",
+    y = "Proportion of Calves Seroconverting",
     color = "Bacteria"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))  # Rotate x-axis labels
- 
+
+
+
