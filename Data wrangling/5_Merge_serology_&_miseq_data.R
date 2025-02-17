@@ -28,7 +28,7 @@ wide_serology <- filtered_serology_main %>%
   )
 
 # Clean up names
-wide_serology_clean <- wide_filtered_serology2 %>% clean_names()
+wide_serology_clean <- wide_serology %>% clean_names()
 
 # Fix problem of duplicate Visit date columns
 Serology_miseq_merge <- final_miseq_data_clean %>%
