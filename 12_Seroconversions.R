@@ -3,7 +3,7 @@ library(ggplot2)
 library(janitor)
 
 # Step 1: Filter and summarize seroconversion data
-seroconversion_data <- long_data2_clean %>%
+seroconversion_data <- vertical_Brief_Serology %>%
   filter(
     (Bacteria == "serology_t_parva" & Average_Value >= 20) |
       (Bacteria == "serology_t_mutans" & Average_Value >= 20) |
