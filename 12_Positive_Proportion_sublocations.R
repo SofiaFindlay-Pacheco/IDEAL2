@@ -1,26 +1,27 @@
 
-# Load required libraries
+# Libraries
 library(dplyr)
 library(ggplot2)
 library(zoo)
 library(RColorBrewer)
 library(janitor)
 
-# Read data
-sublocation_data <- read.csv("C:/Users/sofia/OneDrive - University of Edinburgh/master/original data/ideal_farm.csv")
+# upload file path of sublocation data through farm data from IDEAL
+sublocation_data <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/ideal_farm.xlsx"
+sublocation_data <- read_excel(sublocation_data)
 sublocation_data_clean <- sublocation_data %>% clean_names()
 
 
 # Merge Sublocation data
-long_data2_clean <- long_data2_clean %>%
+vertical_Brief_Serology <- vertical_Brief_Serology %>%
   left_join(sublocation_data_clean %>% select(calf_id, sublocation), by = "calf_id")
 
-# Deduplicate long_data2
-long_data2_dedup <- long_data2_clean %>%
+# Deduplicate vertical_Brief_Serology, keeps only one row when the calf_id, sample_week, Bacteria are the same.
+vertical_Brief_Serology_dedup <- vertical_Brief_Serology %>%
   distinct(calf_id, sample_week, Bacteria, .keep_all = TRUE)
 
 # Recalculate visit summary
-visit_summary <- long_data2_dedup %>%
+visit_summary <- vertical_Brief_Serology_dedup %>%
   filter(!is.na(Average_Value)) %>%
   group_by(sample_week, Bacteria, sublocation) %>%
   summarize(
