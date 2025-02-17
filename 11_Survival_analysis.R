@@ -1,26 +1,26 @@
-install.packages("zoo")  # For rolling functions
+# install.packages("zoo") 
 
+# Library
 library(dplyr)
 library(ggplot2)
-library(zoo)  # For rolling averages
+library(zoo)  
 
 # Clean up the "Dead or alive at end of study" column
-long_data2_clean$dead_or_alive_at_end_of_study <- as.factor(long_data2_clean$dead_or_alive_at_end_of_study)
+vertical_Brief_Serology$dead_or_alive_at_end_of_study <- as.factor(vertical_Brief_Serology$dead_or_alive_at_end_of_study)
 
 # Group all "Dead" statuses together (including different death causes)
-long_data2_clean$dead_or_alive_at_end_of_study <- recode(long_data2_clean$dead_or_alive_at_end_of_study,
+vertical_Brief_Serology$dead_or_alive_at_end_of_study <- recode(vertical_Brief_Serology$dead_or_alive_at_end_of_study,
                                                      "Dead: Infectious death" = "Dead",
                                                      "Dead: Death by trauma" = "Dead",
                                                      "Alive" = "Alive")
-long_data2_clean <- long_data2_clean %>%
+vertical_Brief_Serology <- vertical_Brief_Serology %>%   #Remove censored data
   filter(dead_or_alive_at_end_of_study != "Censored")
-table(long_data2_clean$dead_or_alive_at_end_of_study)
-
+table(vertical_Brief_Serology$dead_or_alive_at_end_of_study) # Check survival status counts
 
 # Plot the bacteria data with survival status as a factor (color)
-long_data2_clean%>% 
-  #filter(Bacteria == "serology_t_parva") %>%
-  filter(Bacteria=="serology_a_marginale")%>%
+vertical_Brief_Serology%>%                      # Filter and prepare for plotting
+  filter(Bacteria == "serology_t_parva") %>%
+  #filter(Bacteria=="serology_a_marginale")%>%
   #filter(Bacteria == "serology_b_bigemina")%>%
   #filter(Bacteria == "serology_t_mutans")%>%
   group_by(calf_id) %>% 
@@ -41,11 +41,9 @@ long_data2_clean%>%
 
 ###
 
+# Average bacteria levels depending on whether the calf is alive or dead
 
-#mean survival analysis
-
-
-avg_data <- long_data2_clean %>%
+avg_data <- vertical_Brief_Serology %>%
   filter(Bacteria == "serology_t_parva") %>%
   #filter(Bacteria == "serology_a_marginale") %>%
   #filter(Bacteria == "serology_b_bigemina")%>%
@@ -67,7 +65,7 @@ ggplot(avg_data, aes(x = sample_week, y = Average_Value, color = dead_or_alive_a
 
 #Sliding window
 # Calculate moving averages using a rolling window of size 3
-avg_data <- long_data2_clean %>%
+avg_data <- vertical_Brief_Serology %>%
   filter(Bacteria == "serology_t_parva") %>%
   group_by(sample_week, dead_or_alive_at_end_of_study) %>%
   summarize(Average_Value = mean(Average_Value, na.rm = TRUE), .groups = "drop") %>%
@@ -88,8 +86,4 @@ ggplot(avg_data, aes(x = sample_week, y = Rolling_Avg, color = dead_or_alive_at_
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-#summary table
-summary_table <- Serology_miseq_merge %>%
-  select(visit_id, Sample_Week, visit_date, date_of_birth) 
 

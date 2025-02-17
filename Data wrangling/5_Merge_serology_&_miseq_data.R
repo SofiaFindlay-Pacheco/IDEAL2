@@ -63,3 +63,7 @@ Brief_serology  <- Brief_serology [order(as.numeric(gsub("[^0-9]", "", Brief_ser
 # Clean up names
 Brief_serology_clean <- Brief_serology  %>% clean_names()
 
+
+#summary table
+summary_table <- Serology_miseq_merge %>%
+  select(visit_id, sample_week, visit_date, date_of_birth) 
