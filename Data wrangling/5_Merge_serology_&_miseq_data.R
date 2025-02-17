@@ -17,24 +17,24 @@ filtered_serology <- serology_clean %>%
   filter(grepl("Serology", test))
 
 #Filter to main columns of interest
-filtered_serology2 <- filtered_serology %>%
+filtered_serology_main <- filtered_serology %>%
   select(visit_id, visit_date, test, quantitative_result_number)
 
 #Flips data frame to be horizontal not vertical
-wide_filtered_serology2 <- filtered_serology2 %>%
+wide_serology <- filtered_serology_main %>%
   pivot_wider(
     names_from = test,  
     values_from = quantitative_result_number  
   )
 
 # Clean up names
-wide_filtered_serology2_clean <- wide_filtered_serology2 %>% clean_names()
+wide_serology_clean <- wide_filtered_serology2 %>% clean_names()
 
 # Fix problem of duplicate Visit date columns
 Serology_miseq_merge <- final_miseq_data_clean %>%
   select(-visit_date) %>%  # Remove the duplicate column before joining
   #merge miseq data and serology data
-  full_join(wide_filtered_serology2_clean, by = "visit_id")
+  full_join(wide_serology_clean, by = "visit_id")
 
 
 #Sample week - changing all the dates to weeks of life
@@ -54,12 +54,12 @@ Serology_miseq_merge$sample_week <- substr(Serology_miseq_merge$visit_id, 4, 5)
 
 
 
-# Select key columns of merged dataset
-Brief_serology <- Serology_miseq_merge %>% select (1,2,26:27,30,38:39,128:132,136 )
+# Select key columns of merged dataset, for just serology
+Brief_serology  <- Serology_miseq_merge %>% select (1,2,26:27,30,38:39,128:132,136 )
 
 # Sort the entire dataset based on the numeric part of CalfID
-Brief_serology <- Brief_serology[order(as.numeric(gsub("[^0-9]", "", Brief_serology$calf_id))), ]
+Brief_serology  <- Brief_serology [order(as.numeric(gsub("[^0-9]", "", Brief_serology $calf_id))), ]
 
 # Clean up names
-Brief_serology_clean <- Brief_serology %>% clean_names()
+Brief_serology_clean <- Brief_serology  %>% clean_names()
 
