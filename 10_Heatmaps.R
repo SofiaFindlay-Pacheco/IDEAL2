@@ -1,12 +1,14 @@
+#Library
 library(tidyr)
 library(ggplot2)
 library(janitor)
 
-long_data2_clean$Average_Value <- as.numeric(long_data2_clean$Average_Value)
-long_data2_clean <- long_data2_clean %>% filter(!is.na(Average_Value))
+# Convert average value to numeric and remove NAs
+vertical_Brief_Serology$Average_Value <- as.numeric(vertical_Brief_Serology$Average_Value)
+vertical_Brief_Serology <- vertical_Brief_Serology %>% filter(!is.na(Average_Value))
 
 # Create the heatmap
-ggplot(long_data2_clean, aes(x = sample_week, y = calf_id, fill = Average_Value)) +
+ggplot(vertical_Brief_Serology, aes(x = sample_week, y = calf_id, fill = Average_Value)) +
   geom_tile() +   # Create tiles (cells)
   scale_fill_gradient(low = "white", high = "blue") +  # Color gradient (change colors as needed)
   labs(
