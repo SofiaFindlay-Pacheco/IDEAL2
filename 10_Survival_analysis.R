@@ -90,6 +90,6 @@ ggplot(avg_data, aes(x = sample_week, y = Rolling_Avg, color = dead_or_alive_at_
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 #summary table
-summary_table <- final_wide_serology2 %>%
+summary_table <- Serology_miseq_merge %>%
   select(visit_id, Sample_Week, visit_date, date_of_birth) 
 
