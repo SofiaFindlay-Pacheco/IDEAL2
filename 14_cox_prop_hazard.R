@@ -2,6 +2,7 @@
 library(readxl)
 library(janitor)
 library(survival)
+library(dplyr)
 
 
 # Load the data for postmortem from IDEAL
@@ -15,15 +16,13 @@ postmortem_clean$date_of_death <- as.Date(postmortem_clean$date_of_death, origin
 
 # Merge serology with postmortem data
 postmortem_clean <- postmortem_clean %>%
-  select(visit_id, date_of_death)
-wide_postmortem <- full_join(vertical_Brief_Serology, postmortem_clean, by = "visit_id")
-
-# Ensure in correct date format
+  select(calf_id, date_of_death)
+wide_postmortem <- full_join(vertical_Brief_Serology, postmortem_clean, by = "calf_id")
+# Select only desired columns from join
 wide_postmortem <- wide_postmortem %>%
-  mutate(
-    date_of_birth = as.Date(date_of_birth, format = "%Y-%m-%d"),
-    date_of_death = as.Date(date_of_death, format = "%Y-%m-%d")
-  )
+  select(calf_id, date_of_birth, date_of_death, calf_sex, Bacteria) %>%
+# Keep only one of repeated rows
+distinct(calf_id, .keep_all = TRUE)
 
 # Replace missing event dates with study end date
 study_end_date <- as.Date("2008-12-31")
