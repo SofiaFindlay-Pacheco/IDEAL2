@@ -20,14 +20,14 @@ postmortem_clean <- postmortem_clean %>%
 wide_postmortem <- full_join(vertical_Brief_Serology, postmortem_clean, by = "calf_id")
 # Select only desired columns from join
 wide_postmortem <- wide_postmortem %>%
-  select(calf_id, date_of_birth, date_of_death, calf_sex, Bacteria) %>%
-# Keep only one of repeated rows
-distinct(calf_id, .keep_all = TRUE)
+  select(calf_id, date_of_birth, date_of_death, calf_sex, Bacteria) #%>%
+# Keep only one of repeated rows #################
+#distinct(calf_id, .keep_all = TRUE)
 
 # Replace missing event dates with study end date
-study_end_date <- as.Date("2008-12-31")
-wide_postmortem <- wide_postmortem %>%
-  mutate(date_of_death = ifelse(is.na(date_of_death), study_end_date, date_of_death))
+#study_end_date <- as.Date("2008-12-31")
+#wide_postmortem <- wide_postmortem %>%
+  #mutate(date_of_death = ifelse(is.na(date_of_death), study_end_date, date_of_death))
 
 # Calculate time to death/censoring in weeks
 wide_postmortem <- wide_postmortem %>%
