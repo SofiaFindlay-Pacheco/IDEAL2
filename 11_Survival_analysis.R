@@ -86,4 +86,3 @@ ggplot(avg_data, aes(x = sample_week, y = Rolling_Avg, color = dead_or_alive_at_
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
-

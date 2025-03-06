@@ -66,3 +66,6 @@ ggplot(visit_summary_filtered, aes(x = sample_week, y = Sliding_Avg, color = sub
   ) +
   facet_wrap(~ Bacteria, ncol = 2, scales = "free_y")  # Facet by Bacteria, 2 columns
 
+shapiro.test(visit_summary$Proportion_Positive)
+kruskal.test(Proportion_Positive ~ sublocation, data = visit_summary)
+
