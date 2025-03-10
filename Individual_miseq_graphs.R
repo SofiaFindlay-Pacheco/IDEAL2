@@ -59,8 +59,11 @@ library(ggplot2)
 library(zoo)
 
 # Define the bacteria columns
-bacteria_columns <- c("ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae", 
-                      "ehrlichia_ruminantium_x61659_ae")
+bacteria_columns <- c( "theileria_mutans_af078815_tb",                                                         
+                                               "theileria_sp_strain_msd_af078816_tb",                                                  
+                                                "theileria_parva_l02366_tb",                                                            
+                                              "theileria_taurotragi_l19082_tb",                                                      
+                                                "theileria_velifera_af097993_tb"   )
 
 # Compute the sum of bacteria values for each sample week and survival status
 avg_miseq_data <- final_miseq_data_clean %>%
@@ -79,7 +82,7 @@ ggplot(avg_miseq_data, aes(x = sample_week, y = Rolling_Avg,
   scale_color_manual(values = c("Alive" = "green", "Dead" = "red")) + 
   scale_y_continuous(labels = scales::comma) +  # Format Y-axis with commas +
   labs(
-    title = "Rolling Average of Anaplasma Load by Survival Status",
+    title = "Rolling Average of Theileria Load by Survival Status",
     x = "Sample Week",
     y = "Rolling Average Bacteria Load",
     color = "Survival Status"
