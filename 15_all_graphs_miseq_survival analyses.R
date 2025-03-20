@@ -36,3 +36,4 @@ ggplot(long_miseq_data, aes(x = sample_week, y = Rolling_Avg,
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+

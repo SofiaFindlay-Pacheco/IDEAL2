@@ -25,3 +25,11 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 
 # Sample week based on first two numbers of VisitID
 final_miseq_data_clean$sample_week <- substr(final_miseq_data_clean$visit_id, 4, 5)
+
+# Remove rows where anaplasma_bovis_u03775_ae is NA
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  filter(!is.na(anaplasma_bovis_u03775_ae))
+
+# Check how many calfs we have in total
+# > final_miseq_data_clean <- final_miseq_data_clean %>%
+  #+     distinct(calf_id, .keep_all = TRUE)

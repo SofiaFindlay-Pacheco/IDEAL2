@@ -6,7 +6,7 @@ library(readxl)
 #Rearrange the miseq file into adequate form
 
 # Upload file path for the combined miseq results page
-path <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/combined results page.xlsx"
+file_path_combined <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/combined results page.xlsx"
 sheet_names <- excel_sheets(file_path_combined)
 
 # Read all miseq sheets into a vertical list
@@ -35,3 +35,4 @@ combined_data <- full_join(data_ae, data_tb, by = "Sample ID", suffix = c("_AE",
 # Further refine combined data to only bacteria of interest, and check for NAs
 combined_data <- combined_data %>% select (1:11, 24, 38: 48, 52)
 combined_data[is.na(combined_data)] <- 0
+
