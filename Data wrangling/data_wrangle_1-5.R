@@ -24,19 +24,22 @@ data_ae <- combined_data %>% filter(grepl("AE", `Sample ID`))
 data_tb <- combined_data %>% filter(grepl("TB", `Sample ID`))
 
 # Select specific columns: column 1, and columns 6 to 23
-data_ae <- data_ae %>% select("Sample ID", 1, 6:23, 25:31, 33)  
-data_tb <- data_tb %>% select("Sample ID", 1, 6:23, 25:31, 33)  
+data_ae <- data_ae %>% select("Sample ID", 1, 6, 8:23, 25:31, 33)  
+data_tb <- data_tb %>% select("Sample ID", 1, 6, 8:23, 25:31, 33)  
 
 # Remove the suffix "AE" or "TB" from the SampleID
-data_ae <- data_ae %>% mutate(`Sample ID` = sub("AE$", "", `Sample ID`))  
-data_tb <- data_tb %>% mutate(`Sample ID` = sub("TB$", "", `Sample ID`))  
+data_ae <- data_ae %>% mutate(`Sample ID` = gsub("AE", "", `Sample ID`))
+data_tb <- data_tb %>% mutate(`Sample ID` = gsub("TB", "", `Sample ID`))  
 
 # Join the data frames by `SampleID` to combine `AE` and `TB` data into one row per sample
 combined_data <- full_join(data_ae, data_tb, by = "Sample ID", suffix = c("_AE", "_TB")) 
 
 # Further refine combined data to only bacteria of interest, and check for NAs
-combined_data <- combined_data %>% select (1:11, 24, 38: 48, 52)
+combined_data <- combined_data %>% select (1:10, 22:23, 36: 46, 50:51)
 combined_data[is.na(combined_data)] <- 0
+
+# Trim `Sample ID` to the first 9 characters
+combined_data <- combined_data %>% mutate(`Sample ID` = substr(`Sample ID`, 1, 9))
 
 ########################### Combine Miseq data with Calf IDs ################################
 

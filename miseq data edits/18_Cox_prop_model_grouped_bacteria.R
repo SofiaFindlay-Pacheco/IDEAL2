@@ -1,7 +1,10 @@
 
-# ====== 🦠 Create Grouped Bacterial Presence Variables (Binary: 1 = Present, 0 = Absent) ======
+library(survival)
+library(survminer)
+library(ggplot2)
+######### Create Grouped Bacterial Presence Variables (Binary: 1 = Present, 0 = Absent) ############
 
-# Anaplasma Presence (If ANY of the 9 Anaplasma columns have a value > 0, mark as 1)
+# Anaplasma Presence (If ANY of the 9 Anaplasma columns have a value > Threshold, mark as 1)
 final_miseq_data_clean$anaplasma_present <- ifelse(
   rowSums(select(final_miseq_data_clean, contains("anaplasma")), na.rm = TRUE) > 1000, 1, 0)
 
@@ -17,18 +20,14 @@ final_miseq_data_clean$theileria_present <- ifelse(
 final_miseq_data_clean$ehrlichia_present <- ifelse(
   rowSums(select(final_miseq_data_clean, starts_with("ehrlichia")), na.rm = TRUE) > 1000, 1, 0)
 
-# ====== 🏥 Cox Proportional Hazards Models with Clustering (Calf ID) ======
+########## Cox Proportional Hazards Models with Clustering (Calf ID) ####################
 
-library(survival)
-library(survminer)
-library(ggplot2)
-#Ensure variables are int he right format
+#Ensure variables are in the right format
 final_miseq_data_clean$anaplasma_present <- as.factor(final_miseq_data_clean$anaplasma_present)
 final_miseq_data_clean$babesia_present <- as.factor(final_miseq_data_clean$babesia_present)
 final_miseq_data_clean$theileria_present <- as.factor(final_miseq_data_clean$theileria_present)
 final_miseq_data_clean$ehrlichia_present <- as.factor(final_miseq_data_clean$ehrlichia_present)
 
-#Ensure variables are int he right format
 # Clean up survival status column
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
 
@@ -46,9 +45,10 @@ final_miseq_data_clean$event <- as.numeric(final_miseq_data_clean$event)
 final_miseq_data_clean$date_last_visit_with_data <- as.Date(final_miseq_data_clean$date_last_visit_with_data)
 final_miseq_data_clean$date_of_birth <- as.Date(final_miseq_data_clean$date_of_birth)
 
-# Now subtract safely
+# Now subtract date of death - date of birth
 final_miseq_data_clean$time_to_event <- as.numeric(final_miseq_data_clean$date_of_death - final_miseq_data_clean$date_of_birth)
-# Handle the deaths without date of death
+
+# Handle the data without date of death, do it as date of last data - dat of birth
 final_miseq_data_clean <- final_miseq_data_clean %>%
   mutate(time_to_event = ifelse(
     is.na(date_of_death) & event == 1, 
@@ -72,6 +72,8 @@ print(summary(cox_theileria))
 # Cox Model: Ehrlichia (Clustering on Calf ID)
 cox_ehrlichia <- coxph(Surv(time_to_event, event) ~ ehrlichia_present + cluster(calf_id), data = final_miseq_data_clean)
 print(summary(cox_ehrlichia))
+
+# Attempt to make my own plot
 
 # Create a data frame with results
 hr_df <- data.frame(
