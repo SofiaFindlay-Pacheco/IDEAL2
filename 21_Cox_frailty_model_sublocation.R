@@ -43,8 +43,48 @@ cox_frailty <- coxph(Surv(time_to_event, event) ~ anaplasma_present + babesia_pr
                        theileria_present + ehrlichia_present + frailty(sublocation), 
                      data = final_miseq_data_clean)
 
+cox_interaction_sub <- coxph(Surv(time_to_event, event) ~ 
+                           anaplasma_present * sublocation + 
+                           babesia_present * sublocation + 
+                           theileria_present * sublocation + 
+                           ehrlichia_present * sublocation, 
+                         data = final_miseq_data_clean)
 # Display model summary
-summary(cox_frailty)
+summary(cox_interaction_sub)
 
 # Visualize Hazard Ratios using ggforest
-ggforest(cox_frailty, data = final_miseq_data_clean)
+ggforest(cox_interaction_sub, data = final_miseq_data_clean)
+############
+# Load required libraries
+library(survival)
+library(survminer)
+library(dplyr)
+
+# Ensure the dataset has the required columns
+# final_miseq_data_clean should contain 'time_to_event', 'death', and 'sublocation'
+# 'time_to_event' is the time (e.g., weeks) until death or censoring
+# 'death' is the survival outcome (1 = dead, 0 = alive)
+# 'sublocation' is the categorical variable for sublocation
+
+# Fit a Cox proportional hazards model with a frailty term for sublocation
+cox_model <- coxph(Surv(time_to_event, death) ~ anaplasma_present + 
+                     babesia_present + theileria_present + ehrlichia_present + 
+                     frailty(sublocation), 
+                   data = final_miseq_data_clean)
+
+# Print summary of the model
+summary(cox_model)
+
+# Extract the variance of the frailty term
+frailty_variance <- cox_model$frailvar
+print(paste("Variance of the sublocation effect:", round(frailty_variance, 3)))
+
+# Plot hazard ratios
+ggforest(cox_model, data = final_miseq_data_clean)
+
+# Calculate the hazard ratio range for sublocation
+sublocation_HR_range <- exp(c(-1.96 * sqrt(frailty_variance), 1.96 * sqrt(frailty_variance)))
+print(paste("Hazard Ratio range due to sublocation effect:", round(sublocation_HR_range[1], 2), "to", round(sublocation_HR_range[2], 2)))
+
+fit_km <- survfit(Surv(time_to_event, event) ~ sublocation, data = final_miseq_data_clean)
+ggsurvplot(fit_km, data = final_miseq_data_clean, pval = TRUE, conf.int = TRUE)

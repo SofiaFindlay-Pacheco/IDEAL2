@@ -12,6 +12,10 @@ ideal_calf <- read_excel(file_path, sheet = "ideal_calf")
 ideal_calf$`Visit date` <- as.numeric(ideal_calf$`Visit date`)
 # Convert numeric Excel serial dates to Date format
 ideal_calf$`Visit date` <- as.Date(ideal_calf$`Visit date`, origin = "1899-12-30")
+# Ensure 'Date last visit with data' is numeric
+ideal_calf$`Date last visit with data` <- as.numeric(ideal_calf$`Date last visit with data`)
+# Convert numeric Excel serial dates to Date format
+ideal_calf$`Date last visit with data` <- as.Date(ideal_calf$`Date last visit with data`, origin = "1899-12-30")
 
 # Combine merged_data with ideal_calf based on 'calfID' (merged_data) and 'visitID' (ideal_calf)
 final_miseq_data <- merge(merged_data, ideal_calf, by.x = "VisitID", by.y = "VisitID", all.x = TRUE, all.y = FALSE)

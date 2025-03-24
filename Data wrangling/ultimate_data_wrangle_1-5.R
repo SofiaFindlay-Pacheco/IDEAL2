@@ -72,6 +72,11 @@ ideal_calf <- read_excel(file_path, sheet = "ideal_calf")
 ideal_calf$`Visit date` <- as.numeric(ideal_calf$`Visit date`)
 # Convert numeric Excel serial dates to Date format
 ideal_calf$`Visit date` <- as.Date(ideal_calf$`Visit date`, origin = "1899-12-30")
+# Ensure 'Date last visit with data' is numeric
+ideal_calf$`Date last visit with data` <- as.numeric(ideal_calf$`Date last visit with data`)
+# Convert numeric Excel serial dates to Date format
+ideal_calf$`Date last visit with data` <- as.Date(ideal_calf$`Date last visit with data`, origin = "1899-12-30")
+
 
 # Combine merged_data with ideal_calf based on 'calfID' (merged_data) and 'visitID' (ideal_calf)
 final_miseq_data <- merge(merged_data, ideal_calf, by.x = "VisitID", by.y = "VisitID", all.x = TRUE, all.y = FALSE)
@@ -127,6 +132,14 @@ Serology_miseq_merge <- final_miseq_data_clean %>%
   #merge miseq data and serology data
   full_join(wide_serology_clean, by = "visit_id")
 
+postmortem <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/ideal_postmortem.xlsx"
+ideal_postmortem <- read_excel(postmortem, sheet = "ideal_postmortem")
+ideal_postmortem_clean <- ideal_postmortem %>% clean_names()
+ideal_postmortem_clean$date_of_death <- as.numeric(ideal_postmortem_clean$date_of_death)
+ideal_postmortem_clean$date_of_death <- as.Date(ideal_postmortem_clean$date_of_death, origin = "1899-12-30")
+
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  left_join(select(ideal_postmortem_clean, calf_id, date_of_death), by = "calf_id")
 
 #Sample week - changing all the dates to weeks of life
 
