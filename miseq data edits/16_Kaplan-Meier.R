@@ -96,7 +96,9 @@ ggsurvplot(km_fit, data = windowed_data,
            palette = c("red", "blue"))
 
 ########################## Add this on for individual Km plots per species #####################
-
+# Define time window for early infection
+early_window <- 51  # Change to 12 if needed
+threshold <- 1000   # Bacterial load threshold
 
 # Loop through each Anaplasma species
 for (bacteria in bacteria_columns) {
