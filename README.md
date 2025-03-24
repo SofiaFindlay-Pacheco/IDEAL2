@@ -1,1 +1,4 @@
-Set up correct data layout for statistical analyses by running data_wrangle_1-5 in the data_wrangle folder of my project. For this the miseq, ideal sample, ideal calf and postmortem data will all be used from the edited original data folder of my project.
+1. Set up correct data layout for statistical analyses by running data_wrangle_1-5 in the data_wrangle folder of my project. For this the miseq, ideal sample, ideal calf and postmortem data will all be used from the edited original data folder of my project.
+2. read script 15_miseq_bacteria_trends in the miseq data edits folder of this project to create bacteria load trends in relation to survival outcome
+3. Read script 16_Kaplan_Meier in the miseq data edits folder of this project in order to create km plots showing the survival outcome impacted by individual and grouped bacterial species from th emiseq data
+4. Read script 18_Cox_prop_model_grouped_bacteria to in the miseq data edits folder of this project in order to create cox hazard model detailing the outcome of grouped bacteria models
