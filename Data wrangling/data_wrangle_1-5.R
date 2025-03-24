@@ -107,4 +107,6 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 final_miseq_data_clean[["visit_date"]] <- as.Date(final_miseq_data_clean[["visit_date"]], format = "%Y-%m-%d")
 final_miseq_data_clean[["date_of_birth"]] <- as.Date(final_miseq_data_clean[["date_of_birth"]], format = "%Y-%m-%d")
 
-
+# Remove rows where anaplasma_bovis_u03775_ae is NA, as it means no miseq data
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  filter(!is.na(anaplasma_bovis_u03775_ae))
