@@ -1,0 +1,1 @@
+Set up correct data layout for statistical analyses by running data_wrangle_1-5 in the data_wrangle folder of my project. For this the miseq, ideal sample, ideal calf and postmortem data will all be used from the edited original data folder of my project.
