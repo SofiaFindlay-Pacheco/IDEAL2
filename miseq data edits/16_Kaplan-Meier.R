@@ -17,13 +17,15 @@ final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_
 # Assign numeric event status (1 = Dead, 0 = Censored/Alive)
 final_miseq_data_clean$event <- ifelse(final_miseq_data_clean$dead_or_alive_at_end_of_study == "Dead", 1, 0)
 
+# Calculate survival time
 # Ensure survival time is numeric
 final_miseq_data_clean$date_last_visit_with_data <- as.Date(final_miseq_data_clean$date_last_visit_with_data)
 final_miseq_data_clean$date_of_birth <- as.Date(final_miseq_data_clean$date_of_birth)
 
-# Now subtract safely
+# Now subtract date of death - date of birth
 final_miseq_data_clean$time_to_event <- as.numeric(final_miseq_data_clean$date_of_death - final_miseq_data_clean$date_of_birth)
-# Handle the deaths without date of death
+
+# Handle the data without date of death, do it as date of last data - dat of birth
 final_miseq_data_clean <- final_miseq_data_clean %>%
   mutate(time_to_event = ifelse(
     is.na(date_of_death) & event == 1, 
@@ -33,13 +35,33 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 final_miseq_data_clean$time_to_event <- final_miseq_data_clean$time_to_event / 7
 
 # List of bacterial species columns
-bacteria_columns <- c(
-  "anaplasma_bovis_u03775_ae", "anaplasma_bovis_ab983439_ae", "anaplasma_marginale_cp000030_ae",
-  "anaplasma_platys_like_ku585990_ae", "anaplasma_phagocytophilum_u02521_ae", 
-  "candidatus_anaplasma_boleense_ku586025_ae", "uncultured_anaplasma_sp_clone_saso_ky924885_ae",
-  "uncultured_anaplasma_sp_jn862825_ae"
-)
+bacteria_columns <- c( "theileria_mutans_af078815_tb"   ,                                                      
+                       "theileria_sp_strain_msd_af078816_tb"       ,                                           
+                       "theileria_parva_l02366_tb"                 ,                                           
+                       "theileria_taurotragi_l19082_tb"            ,                                           
+                       "theileria_velifera_af097993_tb" )
 
+
+#bacteria_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
+#           "anaplasma_bovis_ab983439_ae",                                                       
+#          "anaplasma_marginale_cp000030_ae",                                                      
+#         "anaplasma_platys_like_ku585990_ae",                                                    
+#        "anaplasma_phagocytophilum_u02521_ae",                                                  
+#       "candidatus_anaplasma_boleense_ku586025_ae"        ,                                    
+#      "uncultured_anaplasma_sp_clone_saso_ky924885_ae"     ,                                  
+#     "uncultured_anaplasma_sp_jn862825_ae",
+#    "anaplasma_platys_ef139459_ae")
+
+#bacteria_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
+#      "ehrlichia_ruminantium_x61659_ae")
+
+#bacteria_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
+#            "babesia_bigemina_lk391709_tb"  ,                                                       
+#           "babesia_bigemina_ku206291_tb"  ,
+#           "babesia_bovis_kf928959_tb"     ,                                                      
+#          "babesia_bovis_aaxt01000002_tb" ,                                                   
+#         "babesia_bovis_ay603398_tb"     ,                                                  
+#        "babesia_bovis_jq437260_tb" )
 # Define time window for early infection
 early_window <- 51  # Change to 12 if needed
 
@@ -73,40 +95,8 @@ ggsurvplot(km_fit, data = windowed_data,
            title = "Kaplan-Meier Survival Based on Early Infection (First 10 Weeks) to Anaplasma species",
            palette = c("red", "blue"))
 
-##########################
-###############################
-#####################
-# Load libraries
-library(survival)
-library(survminer)
-library(dplyr)
+########################## Add this on for individual Km plots per species #####################
 
-# Clean up survival status column
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
-
-# Group all "Dead" statuses together
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_clean$dead_or_alive_at_end_of_study,
-                                                               "Dead: Infectious death" = "Dead",
-                                                               "Dead: Death by trauma" = "Dead",
-                                                               "Alive" = "Alive")
-
-# Assign numeric event status (1 = Dead, 0 = Censored/Alive)
-final_miseq_data_clean$event <- ifelse(final_miseq_data_clean$dead_or_alive_at_end_of_study == "Dead", 1, 0)
-
-# Ensure survival time is numeric
-final_miseq_data_clean$time_to_event <- as.numeric(final_miseq_data_clean$sample_week)
-
-# List of bacterial species columns
-bacteria_columns <- c(
-  "anaplasma_bovis_u03775_ae", "anaplasma_bovis_ab983439_ae", "anaplasma_marginale_cp000030_ae",
-  "anaplasma_platys_like_ku585990_ae", "anaplasma_phagocytophilum_u02521_ae", 
-  "candidatus_anaplasma_boleense_ku586025_ae", "uncultured_anaplasma_sp_clone_saso_ky924885_ae",
-  "uncultured_anaplasma_sp_jn862825_ae", "anaplasma_platys_ef139459_ae"
-)
-
-# Define time window for early infection
-early_window <- 51  # Change to 12 if needed
-threshold <- 1000   # Bacterial load threshold
 
 # Loop through each Anaplasma species
 for (bacteria in bacteria_columns) {
