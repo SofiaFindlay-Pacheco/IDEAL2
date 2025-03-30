@@ -4,6 +4,7 @@ library(tidyr)
 library(readxl)
 library(janitor)
 library(tidyverse)
+library(dplyr)
 
 ################### Rearrange the miseq data ############################
 
@@ -113,3 +114,11 @@ final_miseq_data_clean[["date_of_birth"]] <- as.Date(final_miseq_data_clean[["da
 # Remove rows where anaplasma_bovis_u03775_ae is NA, as it means no miseq data
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(!is.na(anaplasma_bovis_u03775_ae))
+
+num_distinct_calves <- final_miseq_data_clean %>%
+  summarise(n_distinct_calf = n_distinct(calf_id)) %>%
+  pull(n_distinct_calf)
+
+print(num_distinct_calves)
+
+
