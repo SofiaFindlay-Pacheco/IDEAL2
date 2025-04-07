@@ -49,14 +49,14 @@ final_miseq_reduced <- select(final_miseq_data_clean, calf_id, sample_week, anap
                               theileria_taurotragi_l19082_tb, theileria_velifera_af097993_tb, babesia_bovis_kf928959_tb, babesia_bovis_aaxt01000002_tb,                                                         
                               babesia_bovis_ay603398_tb, babesia_bovis_jq437260_tb, babesia_bovis_mh569533_tb)
 
-#bacteria_cols <- c( "theileria_mutans_af078815_tb"   ,                                                      
+#pathogens_cols <- c( "theileria_mutans_af078815_tb"   ,                                                      
  #                        "theileria_sp_strain_msd_af078816_tb"       ,                                           
   #                       "theileria_parva_l02366_tb"                 ,                                           
    #                      "theileria_taurotragi_l19082_tb"            ,                                           
     #                     "theileria_velifera_af097993_tb" )
   
   
-  #bacteria_cols <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
+  #pathogens_cols <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
    #          "anaplasma_bovis_ab983439_ae",                                                       
     #        "anaplasma_marginale_cp000030_ae",                                                      
      #      "anaplasma_platys_like_ku585990_ae",                                                    
@@ -66,10 +66,10 @@ final_miseq_reduced <- select(final_miseq_data_clean, calf_id, sample_week, anap
     #   "uncultured_anaplasma_sp_jn862825_ae",
 #      "anaplasma_platys_ef139459_ae")
   
-  bacteria_cols <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
+  pathogens_cols <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
         "ehrlichia_ruminantium_x61659_ae")
   
-  #bacteria_cols <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
+  #pathogens_cols <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
   #            "babesia_bigemina_lk391709_tb"  ,                                                       
   #           "babesia_bigemina_ku206291_tb"  ,
   #           "babesia_bovis_kf928959_tb"     ,                                                      
@@ -77,27 +77,27 @@ final_miseq_reduced <- select(final_miseq_data_clean, calf_id, sample_week, anap
   #         "babesia_bovis_ay603398_tb"     ,                                                  
   #        "babesia_bovis_jq437260_tb" )
 
-# Pivot dataset to long format (keeping all calves for each bacteria)
+# Pivot dataset to long format (keeping all calves for each pathogens)
 long_data <- final_miseq_reduced %>%
-  select(calf_id, sample_week, all_of(bacteria_cols)) %>%  # Select only necessary columns
+  select(calf_id, sample_week, all_of(pathogens_cols)) %>%  # Select only necessary columns
   pivot_longer(
-    cols = all_of(bacteria_cols),  # Pivot only bacteria columns
-    names_to = "bacteria",
+    cols = all_of(pathogens_cols),  # Pivot only pathogens columns
+    names_to = "pathogens",
     values_to = "load"
   )
 
 # Identify first seroconversion week (but keeping ALL calves)
 seroconversion_data <- long_data %>%
-  group_by(calf_id, bacteria) %>%
+  group_by(calf_id, pathogens) %>%
   summarise(seroconversion_week = ifelse(any(load > 0), min(sample_week[load > 0]), NA), .groups = "drop")  
 
 # Merge with survival data, ensuring all calves are included
 final_miseq_seroconversion_clean_long <- expand.grid(
   calf_id = unique(miseq_seroconversion_clean$calf_id),
-  bacteria = bacteria_cols
+  pathogens = pathogens_cols
 ) %>%
   left_join(miseq_seroconversion_clean, by = "calf_id") %>%  # Merge survival data
-  left_join(seroconversion_data, by = c("calf_id", "bacteria"))  # Merge seroconversion data
+  left_join(seroconversion_data, by = c("calf_id", "pathogens"))  # Merge seroconversion data
 
 # Assign non-seroconverters a high seroconversion week (e.g.,52)
 max_week <- 51
@@ -122,7 +122,7 @@ final_miseq_seroconversion_clean_long <- final_miseq_seroconversion_clean_long %
   )
 
 # Ensure correct data types
-#final_miseq_seroconversion_clean_long$bacteria <- as.factor(final_miseq_seroconversion_clean_long$bacteria)
+#final_miseq_seroconversion_clean_long$pathogens <- as.factor(final_miseq_seroconversion_clean_long$pathogens)
 final_miseq_seroconversion_clean_long$event <- as.factor(final_miseq_seroconversion_clean_long$event)
 
 # Check structure
@@ -130,9 +130,9 @@ str(final_miseq_seroconversion_clean_long)
 
 
 # Filter dataset for one specific bacterium
-#specific_bacteria <- "theileria_parva_l02366_tb"
+#specific_pathogens <- "theileria_parva_l02366_tb"
 #final_miseq_seroconversion_clean_long <- final_miseq_seroconversion_clean_long %>%
-#  filter(bacteria == specific_bacteria)
+#  filter(pathogens == specific_pathogens)
 
 # Ensure factor and numeric conversions
 
@@ -142,7 +142,7 @@ summary(final_miseq_seroconversion_clean_long)
 # 2. Visualize Seroconversion Time Distribution
 ggplot(final_miseq_seroconversion_clean_long, aes(x = seroconversion_week, fill = "Ehlrichia")) +
   geom_histogram(binwidth = 5, alpha = 0.7, position = "dodge") +
-  labs(title = "Distribution of Seroconversion Time by Bacteria Type", 
+  labs(title = "Distribution of Seroconversion Time by pathogens Type", 
        x = "Weeks to Seroconversion", 
        y = "Count") +
   theme_minimal()
@@ -183,7 +183,7 @@ ggsurvplot(km_fit, data = final_miseq_seroconversion_clean_long,
 
 
 # 6. Cox Proportional-Hazards Model (Time to Death)
-# Run Cox Proportional-Hazards Model without the bacteria variable
+# Run Cox Proportional-Hazards Model without the pathogens variable
 cox_model <- coxph(Surv(time_to_event, event == 1) ~ seroconversion_week, data = final_miseq_seroconversion_clean_long)
 # View the summary of the model
 summary(cox_model)

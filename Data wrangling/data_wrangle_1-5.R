@@ -35,7 +35,7 @@ data_tb <- data_tb %>% mutate(`Sample ID` = gsub("TB", "", `Sample ID`))
 # Join the data frames by `SampleID` to combine `AE` and `TB` data into one row per sample
 combined_data <- full_join(data_ae, data_tb, by = "Sample ID", suffix = c("_AE", "_TB")) 
 
-# Further refine combined data to only bacteria of interest, and check for NAs
+# Further refine combined data to only pathogens of interest, and check for NAs
 combined_data <- combined_data %>% select (1:10, 22:23, 36: 46, 50:51)
 combined_data[is.na(combined_data)] <- 0
 

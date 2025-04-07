@@ -58,8 +58,8 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
     )
   )
 
-# 🔹 Manually enter the bacteria column you want to analyze
-bacteria <- "anaplasma_platys_ef139459_ae"  # Change this to any column of interest
+# 🔹 Manually enter the pathogens column you want to analyze
+pathogens <- "anaplasma_platys_ef139459_ae"  # Change this to any column of interest
 
 #"theileria_mutans_af078815_tb"   ,                                                      
 #                      "theileria_sp_strain_msd_af078816_tb"       ,                                           
@@ -68,7 +68,7 @@ bacteria <- "anaplasma_platys_ef139459_ae"  # Change this to any column of inter
 #                   "theileria_velifera_af097993_tb" )
 
 
-#bacteria_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
+#pathogens_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
 #          "anaplasma_bovis_ab983439_ae",                                                       
 #        "anaplasma_marginale_cp000030_ae",                                                      
 #      "anaplasma_platys_like_ku585990_ae",                                                    
@@ -78,10 +78,10 @@ bacteria <- "anaplasma_platys_ef139459_ae"  # Change this to any column of inter
 #   "uncultured_anaplasma_sp_jn862825_ae",
 #    "anaplasma_platys_ef139459_ae")
 
-#bacteria_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
+#pathogens_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
  #                      "ehrlichia_ruminantium_x61659_ae")
 
-#bacteria_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
+#pathogens_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
 #           "babesia_bigemina_lk391709_tb"  ,                                                       
 #         "babesia_bigemina_ku206291_tb"  ,
 #        "babesia_bovis_kf928959_tb"     ,                                                      
@@ -94,7 +94,7 @@ cutoff <- 51
 
 # Identify earliest seroconversion (first detection > 0) for each calf
 seroconversion_data <- final_miseq_data_clean %>%
-  filter(sample_week <= cutoff & .data[[bacteria]] > 0) %>%
+  filter(sample_week <= cutoff & .data[[pathogens]] > 0) %>%
   group_by(calf_id) %>%
   summarize(earliest_seroconversion_week = min(sample_week, na.rm = TRUE), .groups = "drop")
 
@@ -126,7 +126,7 @@ ggsurvplot(km_fit_sero, data = windowed_data,
            risk.table = TRUE, 
            censor = TRUE,  
            ggtheme = theme_minimal(),
-           title = paste("Kaplan-Meier Survival Based on Early Seroconversion to", bacteria),
+           title = paste("Kaplan-Meier Survival Based on Early Seroconversion to", pathogens),
            palette = c("red", "blue"))
 
   
@@ -202,7 +202,7 @@ ggsurvplot(km_fit_sero, data = windowed_data,
   # Set early seroconversion cutoff
   cutoff <- 26
   
-  # Identify earliest seroconversion for each bacteria, swap this for the hashtahgged lines for thresholds above 0
+  # Identify earliest seroconversion for each pathogens, swap this for the hashtahgged lines for thresholds above 0
   seroconversion_data <- final_miseq_data_clean %>%
     group_by(calf_id) %>%
     summarize(
@@ -213,10 +213,10 @@ ggsurvplot(km_fit_sero, data = windowed_data,
     ) %>%
     mutate(across(starts_with("earliest_"), ~ ifelse(is.infinite(.), NA_real_, .)))  # Convert Inf to NA
   
-  # Set a threshold for high bacterial load
+  # Set a threshold for high pathogens load
   #threshold <- 10  # Adjust this value based on your data distribution
   
-  # Identify earliest seroconversion week where bacterial load exceeds threshold
+  # Identify earliest seroconversion week where pathogens load exceeds threshold
   #seroconversion_data <- final_miseq_data_clean %>%
   #  group_by(calf_id) %>%
   #  summarize(

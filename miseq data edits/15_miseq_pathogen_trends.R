@@ -1,18 +1,18 @@
-###################### Individual bacteria load graphs over time #######################
+###################### Individual pathogens load graphs over time #######################
 # Load necessary libraries
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-# Define the bacteria columns
-bacteria_columns <- c( "theileria_mutans_af078815_tb"   ,                                                      
+# Define the pathogens columns
+pathogens_columns <- c( "theileria_mutans_af078815_tb"   ,                                                      
                        "theileria_sp_strain_msd_af078816_tb"       ,                                           
                        "theileria_parva_l02366_tb"                 ,                                           
                        "theileria_taurotragi_l19082_tb"            ,                                           
                        "theileria_velifera_af097993_tb" )
 
 
-#bacteria_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
+#pathogens_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
 #           "anaplasma_bovis_ab983439_ae",                                                       
 #          "anaplasma_marginale_cp000030_ae",                                                      
 #         "anaplasma_platys_like_ku585990_ae",                                                    
@@ -22,10 +22,10 @@ bacteria_columns <- c( "theileria_mutans_af078815_tb"   ,
 #     "uncultured_anaplasma_sp_jn862825_ae",
 #    "anaplasma_platys_ef139459_ae")
 
-#bacteria_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
+#pathogens_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
 #      "ehrlichia_ruminantium_x61659_ae")
 
-#bacteria_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
+#pathogens_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
 #            "babesia_bigemina_lk391709_tb"  ,                                                       
 #           "babesia_bigemina_ku206291_tb"  ,
 #           "babesia_bovis_kf928959_tb"     ,                                                      
@@ -43,46 +43,46 @@ final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_
                                                                "Alive" = "Alive")
 
 
-# Transform data: Gather bacteria into a long format for faceting
+# Transform data: Gather pathogens into a long format for faceting
 long_miseq_data <- final_miseq_data_clean %>%
-  select(sample_week, dead_or_alive_at_end_of_study, all_of(bacteria_columns)) %>%
-  pivot_longer(cols = all_of(bacteria_columns), names_to = "Bacteria", values_to = "Value") %>%
-  group_by(sample_week, dead_or_alive_at_end_of_study, Bacteria) %>%
+  select(sample_week, dead_or_alive_at_end_of_study, all_of(pathogens_columns)) %>%
+  pivot_longer(cols = all_of(pathogens_columns), names_to = "pathogens", values_to = "Value") %>%
+  group_by(sample_week, dead_or_alive_at_end_of_study, pathogens) %>%
   summarize(Average_Value = mean(Value, na.rm = TRUE), .groups = "drop") %>%
   arrange(sample_week)
 
-# Plot the average values for each bacteria type in a faceted layout
+# Plot the average values for each pathogens type in a faceted layout
 ggplot(long_miseq_data, aes(x = sample_week, y = Average_Value, 
                             color = dead_or_alive_at_end_of_study, 
                             group = dead_or_alive_at_end_of_study)) +
   geom_line(size = 1.2) +  # Line plot without rolling average
   scale_color_manual(values = c("Alive" = "green", "Dead" = "red")) + 
-  facet_wrap(~Bacteria, scales = "free_y") +  # Separate plots per bacteria
+  facet_wrap(~pathogens, scales = "free_y") +  # Separate plots per pathogens
   labs(
-    title = "Trends in Theileria Bacteria Over Time by Survival Outcome",
+    title = "Trends in Theileria pathogens Over Time by Survival Outcome",
     x = "Sample Week",
-    y = "Average Bacteria Value",
+    y = "Average pathogens Value",
     color = "Survival Status"
   ) +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
 
-############################ Bacteria load over time in lumped species #############################
+############################ pathogens load over time in lumped species #############################
 # Load necessary libraries
 library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-# Define the bacteria columns
-bacteria_columns <- c( "theileria_mutans_af078815_tb"   ,                                                      
+# Define the pathogens columns
+pathogens_columns <- c( "theileria_mutans_af078815_tb"   ,                                                      
                        "theileria_sp_strain_msd_af078816_tb"       ,                                           
                        "theileria_parva_l02366_tb"                 ,                                           
                        "theileria_taurotragi_l19082_tb"            ,                                           
                        "theileria_velifera_af097993_tb" )
 
 
-#bacteria_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
+#pathogens_columns <- c( "anaplasma_bovis_u03775_ae"    ,                                                        
 #           "anaplasma_bovis_ab983439_ae",                                                       
 #          "anaplasma_marginale_cp000030_ae",                                                      
 #         "anaplasma_platys_like_ku585990_ae",                                                    
@@ -92,10 +92,10 @@ bacteria_columns <- c( "theileria_mutans_af078815_tb"   ,
 #     "uncultured_anaplasma_sp_jn862825_ae",
 #    "anaplasma_platys_ef139459_ae")
 
-#bacteria_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
+#pathogens_columns <- c( "ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_ae"  ,
 #      "ehrlichia_ruminantium_x61659_ae")
 
-#bacteria_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
+#pathogens_columns <- c( "babesia_bigemina_ay603402_tb"  ,                                                       
 #            "babesia_bigemina_lk391709_tb"  ,                                                       
 #           "babesia_bigemina_ku206291_tb"  ,
 #           "babesia_bovis_kf928959_tb"     ,                                                      
@@ -112,15 +112,15 @@ final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_
                                                                "Dead: Death by trauma" = "Dead",
                                                                "Alive" = "Alive")
 
-# Compute the **total bacterial load per sample week** for each survival status
+# Compute the **total pathogensl load per sample week** for each survival status
 total_miseq_data <- final_miseq_data_clean %>%
-  select(sample_week, dead_or_alive_at_end_of_study, all_of(bacteria_columns)) %>%
+  select(sample_week, dead_or_alive_at_end_of_study, all_of(pathogens_columns)) %>%
   group_by(sample_week, dead_or_alive_at_end_of_study) %>%
-  summarize(Total_Bacteria_Load = sum(across(all_of(bacteria_columns)), na.rm = TRUE), .groups = "drop") %>%
+  summarize(Total_pathogens_Load = sum(across(all_of(pathogens_columns)), na.rm = TRUE), .groups = "drop") %>%
   arrange(sample_week)
 
-# Plot the total bacterial load over time
-ggplot(total_miseq_data, aes(x = sample_week, y = Total_Bacteria_Load, 
+# Plot the total pathogensl load over time
+ggplot(total_miseq_data, aes(x = sample_week, y = Total_pathogens_Load, 
                              color = dead_or_alive_at_end_of_study, 
                              group = dead_or_alive_at_end_of_study)) +
   geom_line(size = 1.5) +  # Line plot
@@ -129,7 +129,7 @@ ggplot(total_miseq_data, aes(x = sample_week, y = Total_Bacteria_Load,
   labs(
     title = "Total Theileria Load Over Time by Survival Status",
     x = "Sample Week",
-    y = "Log-Scaled Total Bacteria Load",
+    y = "Log-Scaled Total pathogens Load",
     color = "Survival Status"
   ) +
   theme_minimal() +
