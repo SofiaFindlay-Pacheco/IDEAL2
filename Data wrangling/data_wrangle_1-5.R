@@ -5,11 +5,13 @@ library(readxl)
 library(janitor)
 library(tidyverse)
 library(dplyr)
+#install.packages("here")
+library(here)
 
 ################### Rearrange the miseq data ############################
 
 # Upload file path for the combined miseq results page
-file_path_combined <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/combined results page.xlsx"
+file_path_combined <- here("Edited original data", "combined results page.xlsx")
 sheet_names <- excel_sheets(file_path_combined)
 
 # Read all miseq sheets into a vertical list
@@ -44,9 +46,10 @@ combined_data <- combined_data %>% mutate(`Sample ID` = substr(`Sample ID`, 1, 9
 
 ########################### Combine Miseq data with Calf IDs ################################
 
-# Upload file path for the IDEAL sample database
-file_path_sample <- ("C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/ideal_sample.xlsx")
-data <- read_excel(file_path_sample, sheet = "ideal_sample")  
+# Upload file path for the combined miseq results page
+file_path_sample <- here("Edited original data", "ideal_sample.xlsx")
+data <- read_excel(file_path_sample)
+
 
 filtered_data <- data %>%
   filter(
@@ -68,8 +71,8 @@ merged_data <- merged_data[, c("VisitID", setdiff(names(merged_data), "VisitID")
 ############################### Add important data from ideal calf data to database #############################
 
 # Upload the file path for the IDEAL calf data
-file_path <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/ideal_calf.xlsx"
-ideal_calf <- read_excel(file_path, sheet = "ideal_calf")
+file_path <- here("Edited original data", "ideal_calf.xlsx")
+data <- read_excel(file_path)
 
 #Ensure dates are correct
 # Ensure 'Visit date' is numeric

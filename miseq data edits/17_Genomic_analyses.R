@@ -15,7 +15,7 @@ library(survival)
 library(survminer)
 
 
-Genomics <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/Genomics.xlsx"
+Genomics <- here("Edited original data", "Genomics.xlsx")
 Genomics <- read_excel(Genomics)
 Genomics_clean <- Genomics %>% clean_names()
 
