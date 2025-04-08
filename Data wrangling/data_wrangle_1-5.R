@@ -72,7 +72,7 @@ merged_data <- merged_data[, c("VisitID", setdiff(names(merged_data), "VisitID")
 
 # Upload the file path for the IDEAL calf data
 file_path <- here("Edited original data", "ideal_calf.xlsx")
-data <- read_excel(file_path)
+ideal_calf <- read_excel(file_path)
 
 #Ensure dates are correct
 # Ensure 'Visit date' is numeric
@@ -99,8 +99,10 @@ final_miseq_data_clean$sample_week <- substr(final_miseq_data_clean$visit_id, 4,
 
 ################################ Add in date of death with postportem data #########################
 
-postmortem <- "C:/Users/sofia/OneDrive - University of Edinburgh/master/R studio/IDEAL statistics/Edited original data/ideal_postmortem.xlsx"
-ideal_postmortem <- read_excel(postmortem, sheet = "ideal_postmortem")
+# Upload the file path for the IDEAL postmortem data
+postmortem <- here("Edited original data", "ideal_postmortem.xlsx")
+ideal_postmortem <- read_excel(postmortem)
+
 ideal_postmortem_clean <- ideal_postmortem %>% clean_names()
 ideal_postmortem_clean$date_of_death <- as.numeric(ideal_postmortem_clean$date_of_death)
 ideal_postmortem_clean$date_of_death <- as.Date(ideal_postmortem_clean$date_of_death, origin = "1899-12-30")
