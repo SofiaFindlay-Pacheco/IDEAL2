@@ -88,14 +88,21 @@ ideal_calf$`Date last visit with data` <- as.Date(ideal_calf$`Date last visit wi
 final_miseq_data <- merge(merged_data, ideal_calf, by.x = "VisitID", by.y = "VisitID", all.x = TRUE, all.y = FALSE)
 #Clean data
 final_miseq_data_clean <- final_miseq_data %>% clean_names()
-# Reduce to only VRCs
+
+
+# Reduce to no VRDs.
 final_miseq_data_clean <- final_miseq_data_clean %>%
-  filter(
-    grepl("^VRC", visit_id)
-  )
+  filter(grepl("^VRC|^VCC", visit_id))
 
 # Sample week based on first two numbers of VisitID
-final_miseq_data_clean$sample_week <- substr(final_miseq_data_clean$visit_id, 4, 5)
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  mutate(
+    sample_week = case_when(
+      str_starts(visit_id, "VRC") ~ as.numeric(substr(visit_id, 4, 5)),
+      str_starts(visit_id, "VCC") ~ as.numeric(difftime(visit_date, date_of_birth, units = "days")) / 7,
+      TRUE ~ NA_real_  # in case it's neither VRC nor VCC
+    )
+  )
 
 ################################ Add in date of death with postportem data #########################
 
