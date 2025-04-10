@@ -163,8 +163,11 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 final_miseq_data_clean <- final_miseq_data_clean %>%
   select(1:28, 32, 35:36, 40:41, 48, 130:141)
 
+# mutate data columns as they are "unknown"
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  mutate(across(c(visit_date, date_of_birth, date_last_visit_with_data, date_of_death), ~ as.Date(.x, format = "%Y-%m-%d")))
+
 num_distinct_calves <- final_miseq_data_clean %>%
   summarise(n_distinct_calf = n_distinct(calf_id)) %>%
   pull(n_distinct_calf)
-
 print(num_distinct_calves)

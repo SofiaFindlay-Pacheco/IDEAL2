@@ -1,7 +1,14 @@
 # Load libraries
+library(nnet)
+library(janitor)
+library(summarytools)
+library(gtsummary)
+library(dplyr)
+library(tidyr)
+library(readxl)
+library(tidyverse)
 library(survival)
 library(survminer)
-library(dplyr)
 
 # Clean up survival status column
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
@@ -29,6 +36,7 @@ final_miseq_data_clean$date_last_visit_with_data <- as.Date(final_miseq_data_cle
 final_miseq_data_clean$date_of_birth <- as.Date(final_miseq_data_clean$date_of_birth)
 
 # Now subtract date of death - date of birth
+final_miseq_data_clean$date_of_death <- as.Date(final_miseq_data_clean$date_of_death)
 final_miseq_data_clean$time_to_event <- as.numeric(final_miseq_data_clean$date_of_death - final_miseq_data_clean$date_of_birth)
 
 # Handle the data without date of death, do it as date of last data - date of birth
