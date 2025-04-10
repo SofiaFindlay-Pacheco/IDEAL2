@@ -90,6 +90,39 @@ final_miseq_data <- merge(merged_data, ideal_calf, by.x = "VisitID", by.y = "Vis
 final_miseq_data_clean <- final_miseq_data %>% clean_names()
 
 
+########## Add in serology #########################################################
+# Upload file path for the combined miseq results page
+file_path_serology <- here("Edited original data", "Serology_data.xlsx")
+serology <- read_excel(file_path_serology)
+serology_clean <- serology %>% clean_names()
+
+# Filter to rows where the contents of the "test" column begins with "Serology"
+filtered_serology <- serology_clean %>%
+  filter(grepl("Serology", test))
+
+#Filter to main columns of interest
+filtered_serology_main <- filtered_serology %>%
+  select(visit_id, visit_date, test, quantitative_result_number)
+
+#Flips data frame to be horizontal not vertical
+wide_serology <- filtered_serology_main %>%
+  pivot_wider(
+    names_from = test,  
+    values_from = quantitative_result_number  
+  )
+
+# Clean up names
+wide_serology_clean <- wide_serology %>% clean_names()
+
+
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  left_join(
+    wide_serology_clean %>%
+      select(visit_id, serology_t_parva, serology_t_mutans, serology_b_bigemina, serology_a_marginale),  # select only specific columns you want to add
+    by = "visit_id"
+  )
+
+
 # Reduce to no VRDs.
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(grepl("^VRC|^VCC", visit_id))
@@ -115,7 +148,7 @@ ideal_postmortem_clean$date_of_death <- as.numeric(ideal_postmortem_clean$date_o
 ideal_postmortem_clean$date_of_death <- as.Date(ideal_postmortem_clean$date_of_death, origin = "1899-12-30")
 
 final_miseq_data_clean <- final_miseq_data_clean %>%
-  left_join(select(ideal_postmortem_clean, calf_id, date_of_death), by = "calf_id")
+  left_join(select(ideal_postmortem_clean, calf_id, date_of_death, euthanised, immediate_cause_pathology, definitive_aetiological_cause, definitive_cause_pathogen, contributing_pathology_1, contributing_cause_1), by = "calf_id")
 
 ################################## Sample week - changing all the dates to weeks of life ###############
 
@@ -127,10 +160,11 @@ final_miseq_data_clean[["date_of_birth"]] <- as.Date(final_miseq_data_clean[["da
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(!is.na(anaplasma_bovis_u03775_ae))
 
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  select(1:28, 32, 35:36, 40:41, 48, 130:141)
+
 num_distinct_calves <- final_miseq_data_clean %>%
   summarise(n_distinct_calf = n_distinct(calf_id)) %>%
   pull(n_distinct_calf)
 
 print(num_distinct_calves)
-
-
