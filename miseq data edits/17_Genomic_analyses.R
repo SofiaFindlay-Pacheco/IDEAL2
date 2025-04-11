@@ -19,62 +19,6 @@ Genomics <- here("Edited original data", "Genomics.xlsx")
 Genomics <- read_excel(Genomics)
 Genomics_clean <- Genomics %>% clean_names()
 
-########### Arrange data #####################################
-
-# Clean up survival status column
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
-
-# Group all "Dead" statuses together
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_clean$dead_or_alive_at_end_of_study,
-                                                               "Dead: Infectious death" = "Dead",
-                                                               "Dead: Death by trauma" = "Alive",
-                                                               "Alive" = "Alive",
-                                                               "Censored" = "Censored")
-
-
-# Assign numeric event status (1 = Dead, 0 = Censored/Alive)
-final_miseq_data_clean$event <- ifelse(final_miseq_data_clean$dead_or_alive_at_end_of_study == "Dead", 1, 0)
-
-# Calculate survival time
-# Ensure survival time is numeric
-final_miseq_data_clean$date_last_visit_with_data <- as.Date(final_miseq_data_clean$date_last_visit_with_data)
-final_miseq_data_clean$date_of_birth <- as.Date(final_miseq_data_clean$date_of_birth)
-
-# Now subtract date of death - date of birth
-final_miseq_data_clean$time_to_event <- as.numeric(final_miseq_data_clean$date_of_death - final_miseq_data_clean$date_of_birth)
-
-# Handle the data without date of death, do it as date of last data - dat of birth
-final_miseq_data_clean <- final_miseq_data_clean %>%
-  mutate(time_to_event = ifelse(
-    is.na(date_of_death) & event == 1, 
-    as.numeric(date_last_visit_with_data - date_of_birth), 
-    as.numeric(date_of_death - date_of_birth)
-  ))
-final_miseq_data_clean$time_to_event <- final_miseq_data_clean$time_to_event / 7
-
-# Manually set one error
-final_miseq_data_clean <- final_miseq_data_clean %>%
-  mutate(date_last_visit_with_data = case_when(
-    calf_id == "CA020610160" ~ as.Date("2008-07-17"),  # Set specific date for this calf
-    TRUE ~ date_last_visit_with_data  # Keep existing values for others
-  ))
-
-# Update the 'time_to_event' for alive calves (event == 0) to the max_week
-max_week <- 51
-final_miseq_data_clean <- final_miseq_data_clean %>%
-  mutate(
-    time_to_event = ifelse(event == 0, max_week, time_to_event)  # Set to max_week for alive calves
-  )
-# Adjust time_to_event only for censored cases
-final_miseq_data_clean <- final_miseq_data_clean %>%
-  mutate(
-    time_to_event = ifelse(
-      dead_or_alive_at_end_of_study == "Censored",  # Only modify censored calves
-      as.numeric(date_last_visit_with_data - date_of_birth) / 7,  # Time until last visit
-      time_to_event  # Keep existing values for Alive & Dead calves
-    )
-  )
-
 ############ Merge the genomics and calf ID dataframe ########################
 
 # Merge two data frames by 'calf_id', keeping all columns from both
@@ -153,3 +97,47 @@ fisher_test <- fisher.test(contingency_table)
 print(fisher_test)
 
 mosaicplot(table(Genomics_clean$genotype, Genomics_clean$died), main = "Effect of Genotype on Survival status")
+
+
+##################################################################
+############# Putting TT against CT and CC in the same group to check if TT dying first ###################
+
+# Combine CC and CT into one group, keep TT separate
+merged_genomics <- merged_genomics %>%
+  mutate(
+    genotype_group = case_when(
+      genotype == "TT" ~ "TT",
+      genotype %in% c("CC", "CT") ~ "CC_CT",
+      TRUE ~ NA_character_  # In case there are other weird genotypes
+    )
+  )
+
+# Convert new grouped genotype to factor
+merged_genomics$genotype_group <- factor(merged_genomics$genotype_group, levels = c("TT", "CC_CT"))
+
+# Fit Kaplan-Meier model by new grouped genotype
+km_fit_genomics <- survfit(Surv(time_to_event, event) ~ genotype_group, data = merged_genomics)
+
+# Plot Kaplan-Meier curve
+ggsurvplot(
+  km_fit_genomics, 
+  data = merged_genomics,
+  conf.int = TRUE, 
+  pval = TRUE, 
+  risk.table = TRUE, 
+  censor = TRUE,  
+  censor.shape = "|",  
+  censor.size = 3,  
+  ggtheme = theme_minimal(),
+  title = "Kaplan-Meier Survival Curve: TT vs CC/CT Combined",
+  palette = c("red", "blue")  # Two groups = two colors
+)
+
+# Cox model
+cox_model_genomics <- coxph(Surv(time_to_event, event) ~ genotype_group, data = merged_genomics)
+
+# Display summary of the Cox model
+summary(cox_model_genomics)
+
+# Generate forest plot
+ggforest(cox_model_genomics, data = merged_genomics)
