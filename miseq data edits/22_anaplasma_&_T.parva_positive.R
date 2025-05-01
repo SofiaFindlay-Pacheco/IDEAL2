@@ -30,7 +30,7 @@ infection_data <- final_miseq_data_clean %>%
 # Combine any Anaplasma infections 
 earliest_anaplasma = suppressWarnings(min(
   sample_week[
-      anaplasma_marginale_cp000030_ae > 0 
+    anaplasma_platys_ef139459_ae > 0 
   ], na.rm = TRUE)
 ),
 .groups = "drop"

@@ -33,15 +33,6 @@ pathogens_columns <- c( "theileria_mutans_af078815_tb"   ,
 #         "babesia_bovis_ay603398_tb"     ,                                                  
 #        "babesia_bovis_jq437260_tb" )
 
-# Clean up the "Dead or Alive at End of Study" column
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
-
-# Group all "Dead" statuses together (including different causes of death)
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_clean$dead_or_alive_at_end_of_study,
-                                                               "Dead: Infectious death" = "Dead",
-                                                               "Dead: Death by trauma" = "Dead",
-                                                               "Alive" = "Alive")
-
 
 # Transform data: Gather pathogens into a long format for faceting
 long_miseq_data <- final_miseq_data_clean %>%
