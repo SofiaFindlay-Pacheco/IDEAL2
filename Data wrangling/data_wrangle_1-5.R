@@ -160,8 +160,8 @@ final_miseq_data_clean[["date_of_birth"]] <- as.Date(final_miseq_data_clean[["da
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(!is.na(anaplasma_bovis_u03775_ae))
 
-#final_miseq_data_clean <- final_miseq_data_clean %>%
-  #select(1:28, 32, 35:36, 40:41, 48, 130:141)
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  select(1:28, 32, 35:36, 40:41, 48, 130:141)
 
 # mutate data columns as they are "unknown"
 final_miseq_data_clean <- final_miseq_data_clean %>%
