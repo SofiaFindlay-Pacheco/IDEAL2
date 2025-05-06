@@ -160,8 +160,8 @@ final_miseq_data_clean[["date_of_birth"]] <- as.Date(final_miseq_data_clean[["da
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(!is.na(anaplasma_bovis_u03775_ae))
 
-final_miseq_data_clean <- final_miseq_data_clean %>%
-  select(1:28, 32, 35:36, 40:41, 48, 130:141)
+#final_miseq_data_clean <- final_miseq_data_clean %>%
+  #select(1:28, 32, 35:36, 40:41, 48, 130:141)
 
 # mutate data columns as they are "unknown"
 final_miseq_data_clean <- final_miseq_data_clean %>%
@@ -172,7 +172,21 @@ num_distinct_calves <- final_miseq_data_clean %>%
   pull(n_distinct_calf)
 print(num_distinct_calves)
 
-###########################
+########################### ADD in Agro-ecological zones ################################################
+# upload file path of sublocation data through farm data from IDEAL
+sublocation <- here("Edited original data", "ideal_farm.xlsx")
+sublocation_data <- read_excel(sublocation)
+
+sublocation_data_clean <- sublocation_data %>% clean_names()
+
+
+# Merge Sublocation data
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  left_join(sublocation_data_clean %>% select(calf_id, sublocation), by = "calf_id")
+
+final_miseq_data_clean <- final_miseq_data_clean %>% rename(agro_ecological_zones = sublocation)
+
+####################################################################################################
 # Clean up survival status column
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
 final_miseq_data_clean$definitive_aetiological_cause <- as.factor(final_miseq_data_clean$definitive_aetiological_cause)
@@ -248,3 +262,12 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
     )
   )
 
+library(dplyr)
+library(purrr)
+
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  group_by(sample_id) %>%
+  summarise(across(everything(), ~ reduce(.x[!is.na(.x) & .x != 0], coalesce, .init = NA)), .groups = "drop")
+
+Cattle_data <- final_miseq_data_clean %>%
+  select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
