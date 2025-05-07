@@ -267,7 +267,16 @@ library(purrr)
 
 final_miseq_data_clean <- final_miseq_data_clean %>%
   group_by(sample_id) %>%
-  summarise(across(everything(), ~ reduce(.x[!is.na(.x) & .x != 0], coalesce, .init = NA)), .groups = "drop")
+  summarise(across(everything(), ~ {
+    non_missing_non_zero <- .x[!is.na(.x) & .x != 0]
+    if (length(non_missing_non_zero) > 0) {
+      non_missing_non_zero[1]
+    } else {
+      # fallback: use 0 if available, else NA
+      fallback <- .x[!is.na(.x)]
+      if (length(fallback) > 0) fallback[1] else NA
+    }
+  }), .groups = "drop")
 
-Cattle_data <- final_miseq_data_clean %>%
-  select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
+#Cattle_data <- final_miseq_data_clean %>%
+ # select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
