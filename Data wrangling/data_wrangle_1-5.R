@@ -280,3 +280,42 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 
 #Cattle_data <- final_miseq_data_clean %>%
  # select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
+
+
+############################ Descriptive #############################
+
+library(dplyr)
+# Sample week clean up
+weekly_summary <- final_miseq_data_clean %>%
+mutate(sample_week = floor(sample_week)) %>%
+  group_by(sample_week) %>%
+  summarise(
+    n_calves = n_distinct(calf_id),
+    n_deaths = sum(event == 1, na.rm = TRUE),
+    n_alive_or_censored = sum(event == 0, na.rm = TRUE)
+  )
+
+write.csv(weekly_summary, "weekly_summary.csv", row.names = FALSE)
+
+library(ggplot2)
+
+# Create new variable to group time_to_event
+survival_data <- survival_data %>%
+  mutate(
+    event_group = ifelse(time_to_event == 51, "Week 51 (Alive/Censored)", "Before Week 51")
+  )
+
+# Plot
+ggplot(survival_data, aes(x = time_to_event, fill = as.factor(event))) +
+  geom_histogram(binwidth = 2, color = "black") +
+  facet_wrap(~event_group, scales = "free_y") +
+  scale_fill_manual(values = c("0" = "#4575b4", "1" = "#d73027"),
+                    labels = c("0" = "Alive/Censored", "1" = "Died"),
+                    name = "Outcome") +
+  labs(
+    title = "Calf Time to Event Distribution (by Event Status)",
+    x = "Weeks of Age",
+    y = "Number of Calves"
+  ) +
+  theme_minimal(base_size = 14) +
+  theme(legend.position = "right")
