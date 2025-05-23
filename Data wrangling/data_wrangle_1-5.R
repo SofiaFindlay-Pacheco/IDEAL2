@@ -19,6 +19,7 @@ sheets_list <- lapply(sheet_names, function(sheet) {read_excel(file_path_combine
 
 # Turn combined sheets into one data frame
 combined_data <- bind_rows(sheets_list)
+combined_data <- combined_data %>% clean_names()
 
 # Organize sampleID names into adequate form for analysis. By combining rows of same sampleID. 'AE' and 'TB' results from the same sample are now a single row for the whole sample.
 

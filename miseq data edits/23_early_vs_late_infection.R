@@ -11,7 +11,7 @@
   pathogens <- "anaplasma_marginale_cp000030_ae"  # Change if using another strain
   
   # Define early infection cutoff as 12 weeks
-  cutoff <- 6
+  cutoff <- 8
   
   # Identify earliest infection (first detection > 0) before cutoff
   infection_data <- final_miseq_data_clean %>%
