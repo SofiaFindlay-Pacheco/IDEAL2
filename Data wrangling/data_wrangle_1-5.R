@@ -24,26 +24,26 @@ combined_data <- combined_data %>% clean_names()
 # Organize sampleID names into adequate form for analysis. By combining rows of same sampleID. 'AE' and 'TB' results from the same sample are now a single row for the whole sample.
 
 # Filter for rows with `AE` or `TB`
-data_ae <- combined_data %>% filter(grepl("AE", `Sample ID`))
-data_tb <- combined_data %>% filter(grepl("TB", `Sample ID`))
+data_ae <- combined_data %>% filter(grepl("AE", sample_id))
+data_tb <- combined_data %>% filter(grepl("TB", sample_id))
 
 # Select specific columns: column 1, and columns 6 to 23
-data_ae <- data_ae %>% select("Sample ID", 1, 6, 8:23, 25:31, 33)  
-data_tb <- data_tb %>% select("Sample ID", 1, 6, 8:23, 25:31, 33)  
+data_ae <- data_ae %>% select(sample_id, 1, 6, 8:23, 25:31, 33)  
+data_tb <- data_tb %>% select(sample_id, 1, 6, 8:23, 25:31, 33)  
 
 # Remove the suffix "AE" or "TB" from the SampleID
-data_ae <- data_ae %>% mutate(`Sample ID` = gsub("AE", "", `Sample ID`))
-data_tb <- data_tb %>% mutate(`Sample ID` = gsub("TB", "", `Sample ID`))  
+data_ae <- data_ae %>% mutate(sample_id = gsub("AE", "", sample_id))
+data_tb <- data_tb %>% mutate(sample_id = gsub("TB", "", sample_id))  
 
 # Join the data frames by `SampleID` to combine `AE` and `TB` data into one row per sample
-combined_data <- full_join(data_ae, data_tb, by = "Sample ID", suffix = c("_AE", "_TB")) 
+combined_data <- full_join(data_ae, data_tb, by = "sample_id", suffix = c("_AE", "_TB")) 
 
 # Further refine combined data to only pathogens of interest, and check for NAs
 combined_data <- combined_data %>% select (1:10, 22:23, 36: 46, 50:51)
 combined_data[is.na(combined_data)] <- 0
 
 # Trim `Sample ID` to the first 9 characters
-combined_data <- combined_data %>% mutate(`Sample ID` = substr(`Sample ID`, 1, 9))
+combined_data <- combined_data %>% mutate(sample_id = substr(sample_id, 1, 9))
 
 ########################### Combine Miseq data with Calf IDs ################################
 
@@ -66,7 +66,7 @@ calf_codes <- filtered_data %>%
 print(calf_codes)
 
 # Merge the calf codes dataframe to correspond with the miseq data frame based on Sample ID so that visit ID can be seen on miseq data
-merged_data <- merge(combined_data, calf_codes, by.x = "Sample ID", by.y = "codes", all = TRUE)
+merged_data <- merge(combined_data, calf_codes, by.x = "sample_id", by.y = "codes", all = TRUE)
 merged_data <- merged_data[, c("VisitID", setdiff(names(merged_data), "VisitID"))] #rearranges so VisitID is first
 
 ############################### Add important data from ideal calf data to database #############################
@@ -281,42 +281,8 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 
 #Cattle_data <- final_miseq_data_clean %>%
  # select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
+distinct_data <- final_miseq_data_clean %>%
+  distinct(calf_id, .keep_all = TRUE)
 
 
-############################ Descriptive #############################
 
-library(dplyr)
-# Sample week clean up
-weekly_summary <- final_miseq_data_clean %>%
-mutate(sample_week = floor(sample_week)) %>%
-  group_by(sample_week) %>%
-  summarise(
-    n_calves = n_distinct(calf_id),
-    n_deaths = sum(event == 1, na.rm = TRUE),
-    n_alive_or_censored = sum(event == 0, na.rm = TRUE)
-  )
-
-write.csv(weekly_summary, "weekly_summary.csv", row.names = FALSE)
-
-library(ggplot2)
-
-# Create new variable to group time_to_event
-survival_data <- survival_data %>%
-  mutate(
-    event_group = ifelse(time_to_event == 51, "Week 51 (Alive/Censored)", "Before Week 51")
-  )
-
-# Plot
-ggplot(survival_data, aes(x = time_to_event, fill = as.factor(event))) +
-  geom_histogram(binwidth = 2, color = "black") +
-  facet_wrap(~event_group, scales = "free_y") +
-  scale_fill_manual(values = c("0" = "#4575b4", "1" = "#d73027"),
-                    labels = c("0" = "Alive/Censored", "1" = "Died"),
-                    name = "Outcome") +
-  labs(
-    title = "Calf Time to Event Distribution (by Event Status)",
-    x = "Weeks of Age",
-    y = "Number of Calves"
-  ) +
-  theme_minimal(base_size = 14) +
-  theme(legend.position = "right")

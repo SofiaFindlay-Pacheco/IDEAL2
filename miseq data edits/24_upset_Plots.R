@@ -24,18 +24,18 @@ pathogen_cols <- c(
  "theileria_mutans_af078815_tb"   ,                                                      
                         "theileria_sp_strain_msd_af078816_tb"       ,                                           
                        "theileria_parva_l02366_tb"                 ,                                           
-    #                  "theileria_taurotragi_l19082_tb"            ,                                           
-                     "theileria_velifera_af097993_tb" ,
+                     "theileria_taurotragi_l19082_tb"            ,                                           
+                     "theileria_velifera_af097993_tb" )
   
   
 #pathogen_cols <- c(
-"anaplasma_bovis_u03775_ae"    ,                                                        
-            "anaplasma_bovis_ab983439_ae",                                                       
+#"anaplasma_bovis_u03775_ae"    ,                                                        
+    #        "anaplasma_bovis_ab983439_ae",                                                       
    #     "anaplasma_marginale_cp000030_ae",                                                      
-       "anaplasma_platys_like_ku585990_ae",                                                    
+     #  "anaplasma_platys_like_ku585990_ae",                                                    
    # "anaplasma_phagocytophilum_u02521_ae",                                                  
     #"candidatus_anaplasma_boleense_ku586025_ae"        ,                                    
-        "uncultured_anaplasma_sp_clone_saso_ky924885_ae"     )                                  
+    #    "uncultured_anaplasma_sp_clone_saso_ky924885_ae"                                       
     #  "uncultured_anaplasma_sp_jn862825_ae",
   #  "anaplasma_platys_ef139459_ae")
   
