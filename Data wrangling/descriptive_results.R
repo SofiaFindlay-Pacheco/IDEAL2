@@ -1,12 +1,15 @@
-# run upet graphs first
+# run upset graphs first
 ############################ Descriptive #############################
 # Prop infected with all strains of one pathogen, e.g theileria: 
 # Choose the pathogen columns
 pathogen_cols <- c( "theileria_mutans_af078815_tb"   ,                                                      
                     "theileria_sp_strain_msd_af078816_tb"       ,                                           
-                    "theileria_parva_l02366_tb"                 ,                                           
-                    "theileria_taurotragi_l19082_tb"            ,                                           
-                    "theileria_velifera_af097993_tb"  )  
+                    "theileria_parva_l02366_tb"             ,                                           
+                    "theileria_velifera_af097993_tb" ,
+                    "anaplasma_bovis_ab983439_ae",
+                    "anaplasma_phagocytophilum_u02521_ae",
+"anaplasma_platys_like_ku585990_ae",
+"uncultured_anaplasma_sp_clone_saso_ky924885_ae")
 
 # Reshape and summarise
 prop_infected_long <- UpSet_graph_data %>%
@@ -34,14 +37,14 @@ prop_theileria <- UpSet_graph_data %>%
 ####
 #write.csv(prop_theileria, "prop_infected_by_week_Theileria.csv", row.names = FALSE)
 
-### Make a graph
+############################################################################### 
 library(ggplot2)
 library(scales)
 
 # Plot the proportion of calves infected with any Theileria strain
 ggplot(prop_theileria, aes(x = sample_week, y = prop)) +
-  geom_line(color = "darkred", size = 1) +
-  geom_point(color = "darkred", size = 2) +
+  geom_line(aes(group = 1), color = "black", size = 1, alpha = 0.3) +  # group = 1 is the key fix
+  geom_point(color = "black", size = 2) +
   scale_y_continuous(labels = percent_format(accuracy = 1)) +
   labs(
     title = "Proportion of Calves Infected with Any Theileria Strain by Week",
@@ -53,8 +56,7 @@ ggplot(prop_theileria, aes(x = sample_week, y = prop)) +
     plot.title = element_text(hjust = 0.5)
   )
 
-##########################################
-
+###########################################################################################################
 
 library(dplyr)
 # Sample week clean up
@@ -69,9 +71,7 @@ weekly_summary <- final_miseq_data_clean %>%
 
 #write.csv(weekly_summary, "weekly_summary.csv", row.names = FALSE)
 
-###############################
-# Choose the pathogen columns
-#pathogen_cols <- c("theileria_parva_l02366_tb", "theileria_mutans_af078815_tb")  # Add more as needed
+###########################################################################################################
 
 # Reshape and summarise
 prop_infected_long <- UpSet_graph_data %>%
@@ -83,8 +83,8 @@ prop_infected_long <- UpSet_graph_data %>%
 
 library(ggplot2)
 
-ggplot(prop_infected_long, aes(x = sample_week, y = prop, color = pathogen)) +
-  geom_line(size = 1) +
+ggplot(prop_infected_long, aes(x = sample_week, y = prop, color = pathogen, group = pathogen)) +
+  geom_line(size = 1, alpha = 0.3) +  # faint lines
   geom_point(size = 2) +
   theme_minimal() +
   labs(
@@ -95,8 +95,7 @@ ggplot(prop_infected_long, aes(x = sample_week, y = prop, color = pathogen)) +
   scale_y_continuous(labels = scales::percent) +
   theme(legend.title = element_blank())
 
-
-#### Heatmap version
+############################################################################################ Heatmap version
 ggplot(prop_infected_long, aes(x = sample_week, y = pathogen, fill = prop)) +
   geom_tile(color = "white") +
   scale_fill_viridis_c(option = "magma", name = "prop") +
