@@ -296,3 +296,65 @@ prop_theileria <- UpSet_graph_data %>%
     prop = n_infected / n_calves,
     .groups = "drop"
   )
+
+
+
+
+##################################################################### Deaths over time
+library(dplyr)
+library(ggplot2)
+
+# Summarize cumulative deaths over time
+death_curve <- final_miseq_data_clean %>%
+  filter(event == 1) %>%  # Only include death events
+  group_by(time_to_event) %>%
+  summarise(deaths = n()) %>%
+  arrange(time_to_event) %>%
+  mutate(cumulative_deaths = cumsum(deaths))
+
+# Plot
+ggplot(death_curve, aes(x = time_to_event, y = cumulative_deaths)) +
+  geom_step(color = "red", size = 1.2) +
+  labs(title = "Cumulative Number of Calves Dying Over Time",
+       x = "Time to Event (e.g., weeks)",
+       y = "Cumulative Deaths") +
+  theme_minimal()
+
+
+
+library(dplyr)
+library(ggplot2)
+
+# Summarize deaths over time (not cumulative)
+death_curve <- final_miseq_data_clean %>%
+  filter(event == 1) %>%  # Only include death events
+  group_by(time_to_event) %>%
+  summarise(deaths = n()) %>%
+  arrange(time_to_event)
+
+# Plot number of deaths at each time point
+ggplot(death_curve, aes(x = time_to_event, y = deaths)) +
+  geom_col(fill = "red") +  # bar plot to show deaths per time point
+  labs(title = "Number of Calves Dying Over Time",
+       x = "Time to Event (e.g., weeks)",
+       y = "Number of Deaths") +
+  theme_minimal()
+
+
+library(dplyr)
+library(ggplot2)
+
+# Count deaths per time point, grouped by calf_id
+death_counts <- final_miseq_data_clean %>%
+  filter(event == 1) %>%
+  distinct(calf_id, .keep_all = TRUE) %>%
+  count(time_to_event, name = "deaths")
+
+# Plot
+ggplot(death_counts, aes(x = time_to_event, y = deaths)) +
+  geom_col(fill = "red") +
+  labs(title = "Number of Calves Dying at Each Time Point",
+       x = "Time to Event (e.g., weeks)",
+       y = "Number of Deaths") +
+  theme_minimal()
+

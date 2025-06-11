@@ -8,7 +8,7 @@
   library(dplyr)
   
   # Select T. parva as the pathogen of interest
-  pathogens <- "anaplasma_marginale_cp000030_ae"  # Change if using another strain
+  pathogens <- "theileria_mutans_af078815_tb"  # Change if using another strain
   
   # Define early infection cutoff as 12 weeks
   cutoff <- 8
@@ -48,7 +48,7 @@
              risk.table = TRUE,
              censor = TRUE,
              ggtheme = theme_minimal(),
-             title = "Kaplan-Meier Survival Based on Early A. marginale Infection (<12 weeks)",
+             title = "Kaplan-Meier Survival Based on Early T.velifera Infection (<12 weeks)",
              palette = c("red", "blue"))
   
   # Cox Proportional Hazards Model

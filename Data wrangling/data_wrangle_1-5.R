@@ -28,8 +28,8 @@ data_ae <- combined_data %>% filter(grepl("AE", sample_id))
 data_tb <- combined_data %>% filter(grepl("TB", sample_id))
 
 # Select specific columns: column 1, and columns 6 to 23
-data_ae <- data_ae %>% select(sample_id, 1, 6, 8:23, 25:31, 33)  
-data_tb <- data_tb %>% select(sample_id, 1, 6, 8:23, 25:31, 33)  
+data_ae <- data_ae %>% select(sample_id, 1, 6, 7:23, 25:27, 29:31, 33)  
+data_tb <- data_tb %>% select(sample_id, 1, 6, 7:23, 25:27, 29:31, 33)  
 
 # Remove the suffix "AE" or "TB" from the SampleID
 data_ae <- data_ae %>% mutate(sample_id = gsub("AE", "", sample_id))
@@ -191,6 +191,11 @@ final_miseq_data_clean <- final_miseq_data_clean %>% rename(agro_ecological_zone
 # Clean up survival status column
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
 final_miseq_data_clean$definitive_aetiological_cause <- as.factor(final_miseq_data_clean$definitive_aetiological_cause)
+
+#Add a haemonchosis present column
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  mutate(haemonchosis_coinfection = ifelse(contributing_cause_1 == "Haemonchosis", "present", "absent"))
+
 
 # Group all "Dead" statuses together
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_clean$dead_or_alive_at_end_of_study,
