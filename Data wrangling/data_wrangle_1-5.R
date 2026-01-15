@@ -1,15 +1,27 @@
+######################## Organise all data into 1 data frame #############################
 # Libraries
 library(dplyr)
 library(tidyr)
 library(readxl)
 library(janitor)
 library(tidyverse)
-library(dplyr)
-#install.packages("here")
 library(here)
+library(ggplot2)
+library(survival)
+library(survminer)
+library(scales)
+library(coxphf)
+library(viridis)
+library(ggpubr)
+library(ggsci)
+library(ComplexUpset)
+library(gtsummary)
+library(boot)
+library(vegan)
+library(patchwork)
+library(purrr)
 
-################### Rearrange the miseq data ############################
-
+################### Rearrange the miseq data 
 # Upload file path for the combined miseq results page
 file_path_combined <- here("Edited original data", "combined results page.xlsx")
 sheet_names <- excel_sheets(file_path_combined)
@@ -28,8 +40,8 @@ data_ae <- combined_data %>% filter(grepl("AE", sample_id))
 data_tb <- combined_data %>% filter(grepl("TB", sample_id))
 
 # Select specific columns: column 1, and columns 6 to 23
-data_ae <- data_ae %>% select(sample_id, 1, 6, 7:23, 25:27, 29:31, 33)  
-data_tb <- data_tb %>% select(sample_id, 1, 6, 7:23, 25:27, 29:31, 33)  
+data_ae <- data_ae %>% select(sample_id, 1: 6, 7:23, 25:27, 29:31, 33)  
+data_tb <- data_tb %>% select(sample_id, 1: 6, 7:23, 25:27, 29:31, 33)  
 
 # Remove the suffix "AE" or "TB" from the SampleID
 data_ae <- data_ae %>% mutate(sample_id = gsub("AE", "", sample_id))
@@ -39,13 +51,20 @@ data_tb <- data_tb %>% mutate(sample_id = gsub("TB", "", sample_id))
 combined_data <- full_join(data_ae, data_tb, by = "sample_id", suffix = c("_AE", "_TB")) 
 
 # Further refine combined data to only pathogens of interest, and check for NAs
-combined_data <- combined_data %>% select (1:10, 22:23, 36: 46, 50:51)
-combined_data[is.na(combined_data)] <- 0
+combined_data <- combined_data %>% select(2:5, 31:34, "sample_id","anaplasma_bovis_u03775_AE", "anaplasma_bovis_ab983439_AE", "anaplasma_marginale_cp000030_AE",
+"anaplasma_platys_like_ku585990_AE", "anaplasma_phagocytophilum_u02521_AE", "candidatus_anaplasma_boleense_ku586025_AE",                                           
+"uncultured_anaplasma_sp_clone_saso_ky924885_AE","uncultured_anaplasma_sp_jn862825_AE","ehrlichia_sp_tibet_ehrlichia_canis_ehrlichia_minasensis_af414399_ay394465_mt163430_AE",
+"ehrlichia_ruminantium_x61659_AE","anaplasma_platys_ef139459_AE", "babesia_bigemina_ay603402_TB","babesia_bigemina_lk391709_TB",
+"babesia_bigemina_ku206291_TB", "theileria_mutans_af078815_TB", "theileria_sp_strain_msd_af078816_TB","theileria_parva_l02366_TB",                                                            
+"theileria_taurotragi_l19082_TB" , "theileria_velifera_af097993_TB","babesia_bovis_kf928959_TB","babesia_bovis_aaxt01000002_TB",                                                        
+"babesia_bovis_ay603398_TB","babesia_bigemina_lk391709_2_TB","babesia_bovis_jq437260_TB")
+combined_data[sapply(combined_data, is.numeric)] <-
+  lapply(combined_data[sapply(combined_data, is.numeric)], function(x) replace(x, is.na(x), 0))
 
 # Trim `Sample ID` to the first 9 characters
 combined_data <- combined_data %>% mutate(sample_id = substr(sample_id, 1, 9))
 
-########################### Combine Miseq data with Calf IDs ################################
+########################### Combine Miseq data with Calf IDs 
 
 # Upload file path for the combined miseq results page
 file_path_sample <- here("Edited original data", "ideal_sample.xlsx")
@@ -69,7 +88,7 @@ print(calf_codes)
 merged_data <- merge(combined_data, calf_codes, by.x = "sample_id", by.y = "codes", all = TRUE)
 merged_data <- merged_data[, c("VisitID", setdiff(names(merged_data), "VisitID"))] #rearranges so VisitID is first
 
-############################### Add important data from ideal calf data to database #############################
+############################### Add important data from ideal calf data to database 
 
 # Upload the file path for the IDEAL calf data
 file_path <- here("Edited original data", "ideal_calf.xlsx")
@@ -91,7 +110,7 @@ final_miseq_data <- merge(merged_data, ideal_calf, by.x = "VisitID", by.y = "Vis
 final_miseq_data_clean <- final_miseq_data %>% clean_names()
 
 
-########## Add in serology #########################################################
+########## Add in serology 
 # Upload file path for the combined miseq results page
 file_path_serology <- here("Edited original data", "Serology_data.xlsx")
 serology <- read_excel(file_path_serology)
@@ -123,7 +142,6 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
     by = "visit_id"
   )
 
-
 # Reduce to no VRDs.
 final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(grepl("^VRC|^VCC", visit_id))
@@ -133,12 +151,20 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
   mutate(
     sample_week = case_when(
       str_starts(visit_id, "VRC") ~ as.numeric(substr(visit_id, 4, 5)),
-      str_starts(visit_id, "VCC") ~ as.numeric(difftime(visit_date, date_of_birth, units = "days")) / 7,
+      str_starts(visit_id, "VCC") ~ as.numeric(substr(visit_id, 4, 5)),
+        #as.numeric(difftime(visit_date, date_of_birth, units = "days")) / 7,
       TRUE ~ NA_real_  # in case it's neither VRC nor VCC
     )
   )
 
-################################ Add in date of death with postportem data #########################
+#Manually set error
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  mutate(sample_week = case_when(
+    sample_id %in% c("RED002592", "RED003842") ~ as.numeric("5"),  # Set specific week
+    TRUE ~ sample_week
+  ))
+
+################################ Add in date of death with postportem data 
 
 # Upload the file path for the IDEAL postmortem data
 postmortem <- here("Edited original data", "ideal_postmortem.xlsx")
@@ -151,7 +177,7 @@ ideal_postmortem_clean$date_of_death <- as.Date(ideal_postmortem_clean$date_of_d
 final_miseq_data_clean <- final_miseq_data_clean %>%
   left_join(select(ideal_postmortem_clean, calf_id, date_of_death, euthanised, immediate_cause_pathology, definitive_aetiological_cause, definitive_cause_pathogen, contributing_pathology_1, contributing_cause_1), by = "calf_id")
 
-################################## Sample week - changing all the dates to weeks of life ###############
+################################## Sample week - changing all the dates to weeks of life 
 
 # Ensure all dates in date format
 final_miseq_data_clean[["visit_date"]] <- as.Date(final_miseq_data_clean[["visit_date"]], format = "%Y-%m-%d")
@@ -162,7 +188,7 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
   filter(!is.na(anaplasma_bovis_u03775_ae))
 
 final_miseq_data_clean <- final_miseq_data_clean %>%
-  select(1:28, 32, 35:36, 40:41, 48, 130:141)
+  select(1:36, 40, 44, 48:49, 138:149)
 
 # mutate data columns as they are "unknown"
 final_miseq_data_clean <- final_miseq_data_clean %>%
@@ -173,7 +199,7 @@ num_distinct_calves <- final_miseq_data_clean %>%
   pull(n_distinct_calf)
 print(num_distinct_calves)
 
-########################### ADD in Agro-ecological zones ################################################
+########################### ADD in Sublocation zones 
 # upload file path of sublocation data through farm data from IDEAL
 sublocation <- here("Edited original data", "ideal_farm.xlsx")
 sublocation_data <- read_excel(sublocation)
@@ -187,7 +213,6 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
 
 final_miseq_data_clean <- final_miseq_data_clean %>% rename(agro_ecological_zones = sublocation)
 
-####################################################################################################
 # Clean up survival status column
 final_miseq_data_clean$dead_or_alive_at_end_of_study <- as.factor(final_miseq_data_clean$dead_or_alive_at_end_of_study)
 final_miseq_data_clean$definitive_aetiological_cause <- as.factor(final_miseq_data_clean$definitive_aetiological_cause)
@@ -197,13 +222,14 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
   mutate(haemonchosis_coinfection = ifelse(contributing_cause_1 == "Haemonchosis", "present", "absent"))
 
 
-# Group all "Dead" statuses together
-final_miseq_data_clean$dead_or_alive_at_end_of_study <- recode(final_miseq_data_clean$dead_or_alive_at_end_of_study,
-                                                               "Dead: Infectious death" = "Dead",
-                                                               "Dead: Death by trauma" = "Dead",
-                                                               "Alive" = "Alive",
-                                                               "Censored" = "Censored")
+final_miseq_data_clean$dead_or_alive_simple <- case_when(
+  final_miseq_data_clean$dead_or_alive_at_end_of_study %in% c("Dead: Infectious death", "Dead: Death by trauma") ~ "Dead",
+  final_miseq_data_clean$dead_or_alive_at_end_of_study == "Alive" ~ "Alive",
+  final_miseq_data_clean$dead_or_alive_at_end_of_study == "Censored" ~ "Censored",
+  TRUE ~ NA_character_
+)
 
+################ Label definitive aetiological cause column
 final_miseq_data_clean <- final_miseq_data_clean %>%
   mutate(definitive_aetiological_cause = case_when(
     definitive_aetiological_cause == "East coast fever" ~ "Dead",
@@ -268,9 +294,6 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
     )
   )
 
-library(dplyr)
-library(purrr)
-
 final_miseq_data_clean <- final_miseq_data_clean %>%
   group_by(sample_id) %>%
   summarise(across(everything(), ~ {
@@ -283,11 +306,6 @@ final_miseq_data_clean <- final_miseq_data_clean %>%
       if (length(fallback) > 0) fallback[1] else NA
     }
   }), .groups = "drop")
-
-#Cattle_data <- final_miseq_data_clean %>%
- # select(calf_id, calf_sex, weight, sample_week, agro_ecological_zones)
-distinct_data <- final_miseq_data_clean %>%
-  distinct(calf_id, .keep_all = TRUE)
 
 
 
