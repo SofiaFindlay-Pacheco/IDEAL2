@@ -15,19 +15,23 @@ vertical_Brief_Serology <- Brief_serology_clean %>%
 #Remove NAs
 vertical_Brief_Serology <- vertical_Brief_Serology %>% filter(!is.na(sample_week))
 
+# make the serology data long format
+final_miseq_data_clean <- final_miseq_data_clean %>%
+  pivot_longer(cols = 41:44, names_to = "pathogen", values_to = "serology_value")
+
 # Group by CalfID and Bacteria, and filter for first detection of each bacterium
-first_detection <- vertical_Brief_Serology %>%
-  group_by(calf_id, Bacteria) %>%
+first_detection <- final_miseq_data_clean %>%
+  group_by(calf_id, pathogen) %>%
   filter(case_when(
-    Bacteria == "serology_t_parva" ~ Average_Value >= 20,
-    Bacteria == "serology_t_mutans" ~ Average_Value >= 20,
-    Bacteria == "serology_b_bigemina" ~ Average_Value >= 15,
-    Bacteria == "serology_a_marginale" ~ Average_Value >= 15,
+    pathogen == "serology_t_parva" ~ serology_value >= 20,
+    pathogen == "serology_t_mutans" ~ serology_value >= 20,
+    pathogen == "serology_b_bigemina" ~ serology_value >= 15,
+    pathogen == "serology_a_marginale" ~ serology_value >= 15,
   )) %>% # Assuming values > 0 indicate detection
   slice_min(order_by = sample_week, n = 1)  # Keep the first detection
 
 # Create scatter plot for first detection of bacteria
-ggplot(first_detection, aes(x = sample_week, y = calf_id, color = Bacteria)) +
+ggplot(first_detection, aes(x = sample_week, y = calf_id, color = pathogen)) +
   geom_point(size = 4) +                      # Scatter points for first detection
   scale_color_manual(values = c("red", "blue", "green", "yellow")) +  # Custom colors for each bacterium
   labs(
