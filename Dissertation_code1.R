@@ -1077,5 +1077,4 @@ pvals <- c(
 )
 
 results$p_value <- pvals
-
 results
